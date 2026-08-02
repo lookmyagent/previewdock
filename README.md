@@ -1,4 +1,4 @@
-# Universal File Viewer
+# PreviewDock
 
 A local-first, framework-agnostic file preview runtime for the browser.
 
@@ -16,19 +16,19 @@ responsive.
 
 | Package | Purpose |
 | --- | --- |
-| `@universal-file-viewer/core` | File detection, adapter registry, lifecycle and cancellation |
-| `@universal-file-viewer/vue` | Vue 3 host component |
-| `@universal-file-viewer/adapter-text` | Safe text preview and sanitized Markdown source/rendered modes |
-| `@universal-file-viewer/adapter-image` | Browser-native image preview |
-| `@universal-file-viewer/adapter-pdf` | Browser-native PDF preview |
-| `@universal-file-viewer/adapter-media` | Browser-native audio/video player |
-| `@universal-file-viewer/adapter-archive` | ZIP/JAR/TAR/GZIP/TGZ/RAR/7Z directory browsing and embedded file preview |
-| `@universal-file-viewer/adapter-openxml` | High-fidelity browser-side DOCX/XLSX/PPTX preview with safe fallback |
-| `@universal-file-viewer/adapter-legacy-office` | XLS/XLT/XLA preview and optional DOC/PPT PDF-converter contract |
-| `@universal-file-viewer/converter-zetaoffice` | On-demand, pure-browser DOC/PPT to PDF conversion through ZetaOffice WASM |
-| `@universal-file-viewer/adapter-advanced-image` | TIFF/TGA/PSD canvas preview |
-| `@universal-file-viewer/adapter-3d` | Interactive browser-side 3D model preview |
-| `@universal-file-viewer/playground` | Development and integration playground |
+| `@previewdock/core` | File detection, adapter registry, lifecycle and cancellation |
+| `@previewdock/vue` | Vue 3 host component |
+| `@previewdock/adapter-text` | Safe text preview and sanitized Markdown source/rendered modes |
+| `@previewdock/adapter-image` | Browser-native image preview |
+| `@previewdock/adapter-pdf` | Browser-native PDF preview |
+| `@previewdock/adapter-media` | Browser-native audio/video player |
+| `@previewdock/adapter-archive` | ZIP/JAR/TAR/GZIP/TGZ/RAR/7Z directory browsing and embedded file preview |
+| `@previewdock/adapter-openxml` | High-fidelity browser-side DOCX/XLSX/PPTX preview with safe fallback |
+| `@previewdock/adapter-legacy-office` | XLS/XLT/XLA preview and optional DOC/PPT PDF-converter contract |
+| `@previewdock/converter-zetaoffice` | On-demand, pure-browser DOC/PPT to PDF conversion through ZetaOffice WASM |
+| `@previewdock/adapter-advanced-image` | TIFF/TGA/PSD canvas preview |
+| `@previewdock/adapter-3d` | Interactive browser-side 3D model preview |
+| `@previewdock/playground` | Development and integration playground |
 
 ## Quick start
 
@@ -52,8 +52,8 @@ is loaded only after the core has detected a matching file. Applications install
 only the format packages they use.
 
 ```ts
-import { createViewerEngine, defineAdapterPack } from '@universal-file-viewer/core'
-import { textAdapterManifest } from '@universal-file-viewer/adapter-text/manifest'
+import { createViewerEngine, defineAdapterPack } from '@previewdock/core'
+import { textAdapterManifest } from '@previewdock/adapter-text/manifest'
 
 const engine = createViewerEngine([
   defineAdapterPack({ id: 'text', adapters: [textAdapterManifest] }),
@@ -98,9 +98,8 @@ Support levels will be published as `stable`, `beta`, `experimental`, or
 `fallback`; an extension will never be advertised as fully supported solely
 because one sample file opens.
 
-See the honest [format support matrix](docs/format-support.md), the
-[architecture notes](docs/architecture.md), and the original
-[design concept](docs/design-concept.png).
+See the honest [format support matrix](docs/format-support.md) and the
+[architecture notes](docs/architecture.md).
 
 The optional DOC/PPT conversion route and deployment requirements are described
 in [Legacy Office integration](docs/legacy-office.md).

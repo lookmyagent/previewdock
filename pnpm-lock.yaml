@@ -35,40 +35,40 @@ importers:
 
   apps/playground:
     dependencies:
-      '@universal-file-viewer/adapter-3d':
+      '@previewdock/adapter-3d':
         specifier: workspace:*
         version: link:../../packages/adapter-3d
-      '@universal-file-viewer/adapter-advanced-image':
+      '@previewdock/adapter-advanced-image':
         specifier: workspace:*
         version: link:../../packages/adapter-advanced-image
-      '@universal-file-viewer/adapter-archive':
+      '@previewdock/adapter-archive':
         specifier: workspace:*
         version: link:../../packages/adapter-archive
-      '@universal-file-viewer/adapter-image':
+      '@previewdock/adapter-image':
         specifier: workspace:*
         version: link:../../packages/adapter-image
-      '@universal-file-viewer/adapter-legacy-office':
+      '@previewdock/adapter-legacy-office':
         specifier: workspace:*
         version: link:../../packages/adapter-legacy-office
-      '@universal-file-viewer/adapter-media':
+      '@previewdock/adapter-media':
         specifier: workspace:*
         version: link:../../packages/adapter-media
-      '@universal-file-viewer/adapter-openxml':
+      '@previewdock/adapter-openxml':
         specifier: workspace:*
         version: link:../../packages/adapter-openxml
-      '@universal-file-viewer/adapter-pdf':
+      '@previewdock/adapter-pdf':
         specifier: workspace:*
         version: link:../../packages/adapter-pdf
-      '@universal-file-viewer/adapter-text':
+      '@previewdock/adapter-text':
         specifier: workspace:*
         version: link:../../packages/adapter-text
-      '@universal-file-viewer/converter-zetaoffice':
+      '@previewdock/converter-zetaoffice':
         specifier: workspace:*
         version: link:../../packages/converter-zetaoffice
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@universal-file-viewer/vue':
+      '@previewdock/vue':
         specifier: workspace:*
         version: link:../../packages/vue
       fflate:
@@ -96,7 +96,7 @@ importers:
 
   packages/adapter-3d:
     dependencies:
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
       three:
@@ -109,7 +109,7 @@ importers:
 
   packages/adapter-advanced-image:
     dependencies:
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
       ag-psd:
@@ -125,7 +125,7 @@ importers:
 
   packages/adapter-archive:
     dependencies:
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
       fflate:
@@ -137,13 +137,13 @@ importers:
 
   packages/adapter-image:
     dependencies:
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
 
   packages/adapter-legacy-office:
     dependencies:
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
       docx-preview:
@@ -155,7 +155,7 @@ importers:
 
   packages/adapter-media:
     dependencies:
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
 
@@ -164,7 +164,7 @@ importers:
       '@aiden0z/pptx-renderer':
         specifier: ^1.2.4
         version: 1.2.4
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
       docx-preview:
@@ -176,13 +176,13 @@ importers:
 
   packages/adapter-pdf:
     dependencies:
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
 
   packages/adapter-text:
     dependencies:
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
       dompurify:
@@ -194,7 +194,7 @@ importers:
 
   packages/converter-zetaoffice:
     dependencies:
-      '@universal-file-viewer/adapter-legacy-office':
+      '@previewdock/adapter-legacy-office':
         specifier: workspace:*
         version: link:../adapter-legacy-office
       zetajs:
@@ -205,7 +205,7 @@ importers:
 
   packages/vue:
     dependencies:
-      '@universal-file-viewer/core':
+      '@previewdock/core':
         specifier: workspace:*
         version: link:../core
       vue:

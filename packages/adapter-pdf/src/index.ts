@@ -2,7 +2,7 @@ import type {
   FileDescriptor,
   PreviewAdapter,
   PreviewSession,
-} from '@universal-file-viewer/core'
+} from '@previewdock/core'
 
 function isPdf(file: FileDescriptor): boolean {
   return file.extension === 'pdf' || file.mimeType === 'application/pdf'

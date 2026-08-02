@@ -1,4 +1,4 @@
-# Universal File Viewer — 会话交接说明
+# PreviewDock — 会话交接说明
 
 > 更新时间：2026-08-02
 >
@@ -12,10 +12,10 @@
 /Users/du/IdeaProjects/cugpt0709/universal-file-viewer
 ```
 
-如果要迁移到独立目录，建议复制到：
+当前目录名仍是旧名；如果要迁移到独立目录，建议直接从 GitHub 克隆到：
 
 ```text
-/Users/du/IdeaProjects/universal-file-viewer
+/Users/du/IdeaProjects/previewdock
 ```
 
 不要直接删除原目录。确认新目录可以正常启动、构建和测试后，再决定是否清理旧副本。
@@ -63,18 +63,18 @@
 
 | 包 | 作用 |
 | --- | --- |
-| `@universal-file-viewer/core` | 文件检测、适配器注册、生命周期和取消 |
-| `@universal-file-viewer/vue` | Vue 3 组件宿主 |
-| `@universal-file-viewer/adapter-text` | TXT、源码、JSON、XML、CSV、TSV、Markdown |
-| `@universal-file-viewer/adapter-image` | 浏览器原生图片和 SVG |
-| `@universal-file-viewer/adapter-advanced-image` | TIFF、TGA、PSD |
-| `@universal-file-viewer/adapter-pdf` | PDF |
-| `@universal-file-viewer/adapter-media` | 音频和视频 |
-| `@universal-file-viewer/adapter-archive` | ZIP、JAR、TAR、GZIP、RAR、7Z 等压缩包 |
-| `@universal-file-viewer/adapter-openxml` | DOCX、XLSX、PPTX 等新版 Office |
-| `@universal-file-viewer/adapter-legacy-office` | XLS、XLT、XLA 等旧版 Excel，及 DOC/PPT 转换路由 |
-| `@universal-file-viewer/converter-zetaoffice` | 浏览器内 DOC/PPT 转 PDF |
-| `@universal-file-viewer/adapter-3d` | GLB、glTF、OBJ、STL、PLY、FBX、DAE、3DS、3MF、WRL 等 |
+| `@previewdock/core` | 文件检测、适配器注册、生命周期和取消 |
+| `@previewdock/vue` | Vue 3 组件宿主 |
+| `@previewdock/adapter-text` | TXT、源码、JSON、XML、CSV、TSV、Markdown |
+| `@previewdock/adapter-image` | 浏览器原生图片和 SVG |
+| `@previewdock/adapter-advanced-image` | TIFF、TGA、PSD |
+| `@previewdock/adapter-pdf` | PDF |
+| `@previewdock/adapter-media` | 音频和视频 |
+| `@previewdock/adapter-archive` | ZIP、JAR、TAR、GZIP、RAR、7Z 等压缩包 |
+| `@previewdock/adapter-openxml` | DOCX、XLSX、PPTX 等新版 Office |
+| `@previewdock/adapter-legacy-office` | XLS、XLT、XLA 等旧版 Excel，及 DOC/PPT 转换路由 |
+| `@previewdock/converter-zetaoffice` | 浏览器内 DOC/PPT 转 PDF |
+| `@previewdock/adapter-3d` | GLB、glTF、OBJ、STL、PLY、FBX、DAE、3DS、3MF、WRL 等 |
 
 压缩包支持目录树、多级查看、内嵌文件预览和原文件下载。Markdown 支持格式化预览和原文切换。
 
@@ -156,8 +156,8 @@ pnpm test
 也可以只验证体验台：
 
 ```bash
-pnpm --filter @universal-file-viewer/playground typecheck
-pnpm --filter @universal-file-viewer/playground build
+pnpm --filter @previewdock/playground typecheck
+pnpm --filter @previewdock/playground build
 ```
 
 ## 6. 当前验证结果
@@ -180,7 +180,7 @@ pnpm --filter @universal-file-viewer/playground build
 新会话开始时，先执行：
 
 ```bash
-cd /Users/du/IdeaProjects/universal-file-viewer
+cd /Users/du/IdeaProjects/previewdock
 sed -n '1,260p' HANDOFF.md
 pnpm install
 pnpm dev
@@ -210,4 +210,3 @@ pnpm dev
 - 对超大文件、异常 Office 文件和移动端内存不足提供降级提示。
 - 各个适配器及 WASM 依赖的许可证单独核对。
 - 只有明确启用远程 provider 时才允许文件离开浏览器。
-

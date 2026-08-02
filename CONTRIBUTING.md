@@ -1,6 +1,6 @@
 # Contributing
 
-Universal File Viewer is intentionally split into a small core and independent
+PreviewDock is intentionally split into a small core and independent
 format adapters. Contributions should preserve that boundary.
 
 ## Development

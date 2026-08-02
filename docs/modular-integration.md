@@ -1,6 +1,6 @@
 # Modular integration
 
-Universal File Viewer is published as a small Vue host plus independent format
+PreviewDock is published as a small Vue host plus independent format
 adapters. An application should install only the capability groups it needs.
 Import adapter metadata from each package's `/manifest` entry: this entry does
 not load the parser. The parser is downloaded only when the engine detects a
@@ -31,18 +31,18 @@ DOC/PPT conversion. It is not part of `core`, `vue`, or an adapter package.
 
 ```bash
 pnpm add vue \
-  @universal-file-viewer/core \
-  @universal-file-viewer/vue \
-  @universal-file-viewer/adapter-text \
-  @universal-file-viewer/adapter-image \
-  @universal-file-viewer/adapter-pdf
+  @previewdock/core \
+  @previewdock/vue \
+  @previewdock/adapter-text \
+  @previewdock/adapter-image \
+  @previewdock/adapter-pdf
 ```
 
 ```ts
-import { createViewerEngine, defineAdapterPack } from '@universal-file-viewer/core'
-import { textAdapterManifest } from '@universal-file-viewer/adapter-text/manifest'
-import { imageAdapterManifest } from '@universal-file-viewer/adapter-image/manifest'
-import { pdfAdapterManifest } from '@universal-file-viewer/adapter-pdf/manifest'
+import { createViewerEngine, defineAdapterPack } from '@previewdock/core'
+import { textAdapterManifest } from '@previewdock/adapter-text/manifest'
+import { imageAdapterManifest } from '@previewdock/adapter-image/manifest'
+import { pdfAdapterManifest } from '@previewdock/adapter-pdf/manifest'
 
 export const engine = createViewerEngine([
   defineAdapterPack({
@@ -56,17 +56,17 @@ The host application then passes this engine to the Vue component. Adding a
 capability does not change the component UI:
 
 ```vue
-<UniversalFileViewer :engine="engine" :source="file" :file-name="file.name" />
+<PreviewDock :engine="engine" :source="file" :file-name="file.name" />
 ```
 
 ## Add an optional archive group
 
 ```bash
-pnpm add @universal-file-viewer/adapter-archive
+pnpm add @previewdock/adapter-archive
 ```
 
 ```ts
-import { createArchiveAdapterManifest } from '@universal-file-viewer/adapter-archive/manifest'
+import { createArchiveAdapterManifest } from '@previewdock/adapter-archive/manifest'
 
 const archivePack = defineAdapterPack({
   id: 'archive',
@@ -96,7 +96,7 @@ closing the archive browser.
 Modern Office does not need the LibreOffice WASM runtime:
 
 ```ts
-import { openXmlAdapterManifest } from '@universal-file-viewer/adapter-openxml/manifest'
+import { openXmlAdapterManifest } from '@previewdock/adapter-openxml/manifest'
 
 const modernOfficePack = defineAdapterPack({
   id: 'modern-office',
@@ -108,7 +108,7 @@ Legacy XLS works after installing `adapter-legacy-office`. DOC and PPT require a
 converter, so they remain a separate opt-in path:
 
 ```ts
-import { createLegacyOfficeAdapterManifest } from '@universal-file-viewer/adapter-legacy-office/manifest'
+import { createLegacyOfficeAdapterManifest } from '@previewdock/adapter-legacy-office/manifest'
 
 const legacyOfficePack = defineAdapterPack({
   id: 'legacy-office',

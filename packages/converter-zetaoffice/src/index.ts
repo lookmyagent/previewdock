@@ -1,7 +1,7 @@
 import type {
   LegacyOfficeConversionRequest,
   LegacyOfficePdfConverter,
-} from '@universal-file-viewer/adapter-legacy-office'
+} from '@previewdock/adapter-legacy-office'
 import {
   ZetaHelperMain,
   type ZetaHelperMainInstance,

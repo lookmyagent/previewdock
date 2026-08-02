@@ -1,5 +1,5 @@
-import UniversalFileViewer from './UniversalFileViewer.vue'
+import PreviewDock from './PreviewDock.vue'
 
-export { UniversalFileViewer }
+export { PreviewDock }
 export * from './i18n'
-export default UniversalFileViewer
+export default PreviewDock

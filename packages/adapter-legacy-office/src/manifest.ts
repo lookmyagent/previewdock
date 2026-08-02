@@ -1,4 +1,4 @@
-import type { AdapterRegistration } from '@universal-file-viewer/core'
+import type { AdapterRegistration } from '@previewdock/core'
 import type { LegacyOfficeAdapterOptions } from './index'
 
 export function createLegacyOfficeAdapterManifest(

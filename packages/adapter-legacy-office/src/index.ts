@@ -2,7 +2,7 @@ import type {
   FileDescriptor,
   PreviewAdapter,
   PreviewSession,
-} from '@universal-file-viewer/core'
+} from '@previewdock/core'
 
 const spreadsheetExtensions = new Set(['xls', 'xlt', 'xla'])
 const convertedExtensions = new Set(['doc', 'ppt'])

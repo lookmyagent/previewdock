@@ -1,5 +1,5 @@
 {
-  "name": "@universal-file-viewer/core",
+  "name": "@previewdock/core",
   "version": "0.1.0",
   "description": "Framework-agnostic browser runtime for lazy file preview adapters",
   "license": "Apache-2.0",

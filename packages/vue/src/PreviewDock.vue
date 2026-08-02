@@ -31,9 +31,9 @@ import type {
   FileSource,
   OpenResult,
   ViewerStatus,
-} from '@universal-file-viewer/core'
+} from '@previewdock/core'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import type { ViewerEngine } from '@universal-file-viewer/core'
+import type { ViewerEngine } from '@previewdock/core'
 import {
   viewerMessages,
   type ViewerLocale,

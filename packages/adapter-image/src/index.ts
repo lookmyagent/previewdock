@@ -2,7 +2,7 @@ import type {
   FileDescriptor,
   PreviewAdapter,
   PreviewSession,
-} from '@universal-file-viewer/core'
+} from '@previewdock/core'
 
 const extensions = new Set([
   'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'jfif', 'svg',

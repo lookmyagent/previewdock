@@ -1,7 +1,7 @@
 {
-  "name": "@universal-file-viewer/adapter-3d",
+  "name": "@previewdock/adapter-3d",
   "version": "0.1.0",
-  "description": "Browser-side 3D model viewer for Universal File Viewer",
+  "description": "Browser-side 3D model viewer for PreviewDock",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -24,7 +24,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@universal-file-viewer/core": "workspace:*",
+    "@previewdock/core": "workspace:*",
     "three": "^0.185.1"
   },
   "devDependencies": {

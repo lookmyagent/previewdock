@@ -1,4 +1,4 @@
-import type { ViewerPhase } from '@universal-file-viewer/core'
+import type { ViewerPhase } from '@previewdock/core'
 
 export type ViewerLocale = 'en' | 'zh-CN'
 

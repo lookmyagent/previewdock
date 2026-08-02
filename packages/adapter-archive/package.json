@@ -1,5 +1,5 @@
 {
-  "name": "@universal-file-viewer/adapter-archive",
+  "name": "@previewdock/adapter-archive",
   "version": "0.1.0",
   "description": "ZIP, JAR, TAR and GZIP directory browser with embedded file preview",
   "license": "Apache-2.0",
@@ -26,7 +26,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@universal-file-viewer/core": "workspace:*",
+    "@previewdock/core": "workspace:*",
     "fflate": "^0.8.3",
     "libarchive.js": "^2.0.2"
   }

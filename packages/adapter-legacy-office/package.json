@@ -1,5 +1,5 @@
 {
-  "name": "@universal-file-viewer/adapter-legacy-office",
+  "name": "@previewdock/adapter-legacy-office",
   "version": "0.1.0",
   "description": "Browser-side XLS preview and optional DOC/PPT conversion adapter",
   "license": "Apache-2.0",
@@ -24,7 +24,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@universal-file-viewer/core": "workspace:*",
+    "@previewdock/core": "workspace:*",
     "docx-preview": "^0.4.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }

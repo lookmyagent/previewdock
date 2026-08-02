@@ -8,10 +8,10 @@ export default defineConfig({
     lib: {
       entry: resolve(import.meta.dirname, 'src/index.ts'),
       formats: ['es'],
-      fileName: 'universal-file-viewer',
+      fileName: 'previewdock',
     },
     rollupOptions: {
-      external: ['vue', '@universal-file-viewer/core'],
+      external: ['vue', '@previewdock/core'],
     },
   },
 })

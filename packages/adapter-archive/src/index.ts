@@ -2,7 +2,7 @@ import type {
   FileDescriptor,
   PreviewAdapter,
   PreviewSession,
-} from '@universal-file-viewer/core'
+} from '@previewdock/core'
 import { gunzipSync, unzipSync } from 'fflate'
 
 interface ArchiveEntry {

@@ -26,14 +26,14 @@ LibreOffice WebAssembly. It is dynamically imported only after a DOC or PPT is
 opened:
 
 ```ts
-import { createLegacyOfficeAdapter } from '@universal-file-viewer/adapter-legacy-office'
+import { createLegacyOfficeAdapter } from '@previewdock/adapter-legacy-office'
 
 const adapter = createLegacyOfficeAdapter({
   converter: {
     id: 'zetaoffice-wasm',
     async convert(request) {
       const { createZetaOfficeConverter } = await import(
-        '@universal-file-viewer/converter-zetaoffice'
+        '@previewdock/converter-zetaoffice'
       )
       const { default: zetaJsUrl } = await import('zetajs/zeta.js?url')
       return createZetaOfficeConverter({

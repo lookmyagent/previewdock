@@ -1,7 +1,7 @@
 {
-  "name": "@universal-file-viewer/adapter-advanced-image",
+  "name": "@previewdock/adapter-advanced-image",
   "version": "0.1.0",
-  "description": "Browser-side TIFF, TGA, and PSD preview adapter for Universal File Viewer",
+  "description": "Browser-side TIFF, TGA, and PSD preview adapter for PreviewDock",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -24,7 +24,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@universal-file-viewer/core": "workspace:*",
+    "@previewdock/core": "workspace:*",
     "ag-psd": "^31.0.2",
     "three": "^0.185.1"
   },

@@ -2,7 +2,7 @@ import type {
   FileDescriptor,
   PreviewAdapter,
   PreviewSession,
-} from '@universal-file-viewer/core'
+} from '@previewdock/core'
 
 const extensions = new Set(['tif', 'tiff', 'tga', 'psd'])
 const MAX_INPUT_SIZE = 80 * 1024 * 1024

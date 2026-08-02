@@ -2,7 +2,7 @@ import type {
   FileDescriptor,
   PreviewAdapter,
   PreviewSession,
-} from '@universal-file-viewer/core'
+} from '@previewdock/core'
 import { strFromU8, unzipSync } from 'fflate'
 
 type OfficeKind = 'document' | 'spreadsheet' | 'presentation'

@@ -1,7 +1,7 @@
 {
-  "name": "@universal-file-viewer/adapter-image",
+  "name": "@previewdock/adapter-image",
   "version": "0.1.0",
-  "description": "Browser-native image preview adapter for Universal File Viewer",
+  "description": "Browser-native image preview adapter for PreviewDock",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -24,6 +24,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@universal-file-viewer/core": "workspace:*"
+    "@previewdock/core": "workspace:*"
   }
 }

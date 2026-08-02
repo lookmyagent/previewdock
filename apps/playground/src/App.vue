@@ -1,7 +1,7 @@
 <template>
   <div class="portal">
     <header class="portal-nav">
-      <a class="portal-brand" href="#top" aria-label="Universal File Viewer">
+      <a class="portal-brand" href="#top" aria-label="PreviewDock">
         <span class="portal-brand__mark" aria-hidden="true">
           <svg viewBox="0 0 32 32">
             <path d="M8.5 3.5h10l5 5v20h-15z" />
@@ -10,7 +10,7 @@
           </svg>
         </span>
         <span class="portal-brand__copy">
-          <strong>Universal File Viewer</strong>
+          <strong>PreviewDock</strong>
           <small>Browser-native preview runtime</small>
         </span>
       </a>
@@ -68,7 +68,7 @@
           </dl>
         </div>
 
-        <div class="hero-product" aria-label="Universal File Viewer preview interface">
+        <div class="hero-product" aria-label="PreviewDock preview interface">
           <div class="product-window">
             <div class="product-window__bar">
               <span class="window-dots"><i></i><i></i><i></i></span>
@@ -191,14 +191,14 @@
         <div class="code-window">
           <div class="code-window__bar"><span><i></i><i></i><i></i></span><strong>Viewer.vue</strong><button type="button" @click="copyIntegrationCode">{{ codeCopied ? marketing.copied : marketing.copy }}</button></div>
           <pre><code><span class="code-muted">&lt;script setup lang="ts"&gt;</span>
-<span class="code-purple">import</span> { UniversalFileViewer } <span class="code-purple">from</span> <span class="code-green">'@universal-file-viewer/vue'</span>
-<span class="code-purple">import</span> { createViewerEngine } <span class="code-purple">from</span> <span class="code-green">'@universal-file-viewer/core'</span>
+<span class="code-purple">import</span> { PreviewDock } <span class="code-purple">from</span> <span class="code-green">'@previewdock/vue'</span>
+<span class="code-purple">import</span> { createViewerEngine } <span class="code-purple">from</span> <span class="code-green">'@previewdock/core'</span>
 
 <span class="code-purple">const</span> engine = createViewerEngine([basicPack, officePack])
 <span class="code-muted">&lt;/script&gt;</span>
 
 <span class="code-muted">&lt;template&gt;</span>
-  <span class="code-blue">&lt;UniversalFileViewer</span> <span class="code-orange">:engine</span>=<span class="code-green">"engine"</span> <span class="code-orange">:source</span>=<span class="code-green">"file"</span> <span class="code-blue">/&gt;</span>
+  <span class="code-blue">&lt;PreviewDock</span> <span class="code-orange">:engine</span>=<span class="code-green">"engine"</span> <span class="code-orange">:source</span>=<span class="code-green">"file"</span> <span class="code-blue">/&gt;</span>
 <span class="code-muted">&lt;/template&gt;</span></code></pre>
         </div>
       </section>
@@ -262,7 +262,7 @@
 
       <section class="preview-panel">
         <div class="tabbar"><span>{{ t('preview') }}</span></div>
-        <UniversalFileViewer
+        <PreviewDock
           :engine="engine"
           :source="activeFile.source"
           :file-name="activeFile.name"
@@ -317,7 +317,7 @@
         <span class="portal-brand__mark" aria-hidden="true">
           <svg viewBox="0 0 32 32"><path d="M8.5 3.5h10l5 5v20h-15z"/><path d="M18.5 3.5v6h5"/><path d="M12 15.5h8M12 20h8M12 24.5h5"/></svg>
         </span>
-        <div><strong>Universal File Viewer</strong><small>{{ marketing.footerDescription }}</small></div>
+        <div><strong>PreviewDock</strong><small>{{ marketing.footerDescription }}</small></div>
       </div>
       <div class="portal-footer__meta"><span>Apache-2.0</span><span>Local-first</span><span>Vue 3</span></div>
     </footer>
@@ -334,17 +334,17 @@ import {
   type OpenResult,
   type PreviewCapability,
   type ViewerStatus,
-} from '@universal-file-viewer/core'
-import { textAdapterManifest } from '@universal-file-viewer/adapter-text/manifest'
-import { imageAdapterManifest } from '@universal-file-viewer/adapter-image/manifest'
-import { pdfAdapterManifest } from '@universal-file-viewer/adapter-pdf/manifest'
-import { mediaAdapterManifest } from '@universal-file-viewer/adapter-media/manifest'
-import { advancedImageAdapterManifest } from '@universal-file-viewer/adapter-advanced-image/manifest'
-import { modelAdapterManifest } from '@universal-file-viewer/adapter-3d/manifest'
-import { openXmlAdapterManifest } from '@universal-file-viewer/adapter-openxml/manifest'
-import { createArchiveAdapterManifest } from '@universal-file-viewer/adapter-archive/manifest'
-import { createLegacyOfficeAdapterManifest } from '@universal-file-viewer/adapter-legacy-office/manifest'
-import { UniversalFileViewer, viewerMessages, type ViewerLocale } from '@universal-file-viewer/vue'
+} from '@previewdock/core'
+import { textAdapterManifest } from '@previewdock/adapter-text/manifest'
+import { imageAdapterManifest } from '@previewdock/adapter-image/manifest'
+import { pdfAdapterManifest } from '@previewdock/adapter-pdf/manifest'
+import { mediaAdapterManifest } from '@previewdock/adapter-media/manifest'
+import { advancedImageAdapterManifest } from '@previewdock/adapter-advanced-image/manifest'
+import { modelAdapterManifest } from '@previewdock/adapter-3d/manifest'
+import { openXmlAdapterManifest } from '@previewdock/adapter-openxml/manifest'
+import { createArchiveAdapterManifest } from '@previewdock/adapter-archive/manifest'
+import { createLegacyOfficeAdapterManifest } from '@previewdock/adapter-legacy-office/manifest'
+import { PreviewDock, viewerMessages, type ViewerLocale } from '@previewdock/vue'
 import { strToU8, zipSync } from 'fflate'
 
 interface SampleFile {
@@ -436,7 +436,7 @@ const marketing = computed(() => {
         { value: '100%', label: '文件本地优先' },
       ],
       heroFiles: '示例文件', renderedLocally: '已在浏览器本地渲染', officeReady: 'Office 就绪', nestedReady: '多级查看', modelReady: '交互模型', supportedFormats: '当前支持的代表格式',
-      featureKicker: 'WHY UNIVERSAL FILE VIEWER', featureTitle: '为真实业务系统而设计',
+      featureKicker: 'WHY PREVIEWDOCK', featureTitle: '为真实业务系统而设计',
       featureDescription: '不把所有解析器塞进首屏，也不把用户文件默默上传到远端。每项能力都可以独立选择、延迟加载和安全隔离。',
       features: [
         { title: '本地优先', description: '文件默认留在浏览器中，降低数据外传与跨域服务依赖。', icon: featureIcons.local },
@@ -485,7 +485,7 @@ const marketing = computed(() => {
       { value: '100%', label: 'local-first files' },
     ],
     heroFiles: 'Sample files', renderedLocally: 'Rendered locally in your browser', officeReady: 'Office ready', nestedReady: 'Nested browse', modelReady: 'Interactive', supportedFormats: 'Representative supported formats',
-    featureKicker: 'WHY UNIVERSAL FILE VIEWER', featureTitle: 'Built for real product surfaces',
+    featureKicker: 'WHY PREVIEWDOCK', featureTitle: 'Built for real product surfaces',
     featureDescription: 'Do not ship every parser on first load, and do not silently send user files away. Every capability can be selected, lazy-loaded, and isolated.',
     features: [
       { title: 'Local-first', description: 'Files stay in the browser by default, reducing data exposure and service dependencies.', icon: featureIcons.local },
@@ -521,14 +521,14 @@ const marketing = computed(() => {
 })
 
 const integrationCode = `<script setup lang="ts">
-import { UniversalFileViewer } from '@universal-file-viewer/vue'
-import { createViewerEngine } from '@universal-file-viewer/core'
+import { PreviewDock } from '@previewdock/vue'
+import { createViewerEngine } from '@previewdock/core'
 
 const engine = createViewerEngine([basicPack, officePack])
 <${'/'}script>
 
 <template>
-  <UniversalFileViewer :engine="engine" :source="file" />
+  <PreviewDock :engine="engine" :source="file" />
 </template>`
 const codeCopied = ref(false)
 
@@ -634,7 +634,7 @@ const officePack = defineAdapterPack({
         id: 'zetaoffice-wasm',
         async convert(request) {
         const { createZetaOfficeConverter } = await import(
-          '@universal-file-viewer/converter-zetaoffice'
+          '@previewdock/converter-zetaoffice'
         )
         const { default: zetaJsUrl } = await import('zetajs/zeta.js?url')
         const wasmPackage = import.meta.env.VITE_ZETAOFFICE_ASSET_URL || 'free'
@@ -732,7 +732,7 @@ function createDocxSample(): File {
     'word/document.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
       <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
         <w:body>
-          <w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>Universal File Viewer</w:t></w:r></w:p>
+          <w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>PreviewDock</w:t></w:r></w:p>
           <w:p><w:r><w:t>High-fidelity DOCX preview rendered entirely in your browser.</w:t></w:r></w:p>
           <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Features</w:t></w:r></w:p>
           <w:p><w:r><w:t>Page layout and typography</w:t></w:r></w:p>
@@ -785,7 +785,7 @@ function createPptxSample(): File {
             <p:sp>
               <p:nvSpPr><p:cNvPr id="2" name="Title"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
               <p:spPr><a:xfrm><a:off x="914400" y="1371600"/><a:ext cx="10363200" cy="1219200"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
-              <p:txBody><a:bodyPr anchor="ctr"/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" sz="3000" b="1"><a:solidFill><a:srgbClr val="315EE7"/></a:solidFill><a:latin typeface="Arial"/></a:rPr><a:t>Universal File Viewer</a:t></a:r><a:endParaRPr lang="en-US" sz="3000"/></a:p></p:txBody>
+              <p:txBody><a:bodyPr anchor="ctr"/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" sz="3000" b="1"><a:solidFill><a:srgbClr val="315EE7"/></a:solidFill><a:latin typeface="Arial"/></a:rPr><a:t>PreviewDock</a:t></a:r><a:endParaRPr lang="en-US" sz="3000"/></a:p></p:txBody>
             </p:sp>
             <p:sp>
               <p:nvSpPr><p:cNvPr id="3" name="Subtitle"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
@@ -800,7 +800,7 @@ function createPptxSample(): File {
 }
 
 function createPdfSample(): File {
-  const stream = 'BT /F1 24 Tf 72 700 Td (Universal File Viewer) Tj 0 -38 Td /F1 14 Tf (Browser-native PDF preview) Tj ET\n'
+  const stream = 'BT /F1 24 Tf 72 700 Td (PreviewDock) Tj 0 -38 Td /F1 14 Tf (Browser-native PDF preview) Tj ET\n'
   const objects = [
     '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
     '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
@@ -823,9 +823,9 @@ function createPdfSample(): File {
 
 const xlsxSampleBase64 = 'UEsDBBQAAAAIALNz/1x9j8M5SgAAAE0AAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLMJqSxILVaoyM3JK7ZVyigpKbDS1y9OzkjNTSzWyy9IzQPKpOUX5SaWALlF6foFicnZiemp+kYGBmb6yfl5Jal5JbolIDOU9O0AUEsDBBQAAAAIALNz/1yRt7JrcgAAAKUAAAAUAAAAeGwvc2hhcmVkU3RyaW5ncy54bWxljkEKwkAMRa8iPYApLlxIzEq6FjxBsNEpNDNhkoLHd9SF0C7/e2/x0T12L52zn7sUYScAvydR9n0xyc08SlWONusT3Krw6EkkdIZD3x9BecodoU+EQcO3RQhC+JAfvQXH4mt6vQybcDErNWT8C2j/6A1QSwMEFAAAAAgAs3P/XGDIfyKMAAAAAgEAABgAAAB4bC93b3Jrc2hlZXRzL3NoZWV0MS54bWxdj90KAiEQRl9l8QEaNegiVCh6ETHLaP3BGXZ7/GwJkb2b+c7MYUatub4xeE/TJ84JNQtE5QyALvho8ZCLT408co2WWlufgKV6e9+W4gyS8xNE+0rMqC27WbJG1bxOVTPRUvcrLoJNpBm2fjFcwWIUuD+7jkx0Bs3RRbKL5DAsd6KRHXciGK6D/rb5AlBLAQIUABQAAAAIALNz/1x9j8M5SgAAAE0AAAATAAAAAAAAAAAAAAAAAAAAAABbQ29udGVudF9UeXBlc10ueG1sUEsBAhQAFAAAAAgAs3P/XJG3smtyAAAApQAAABQAAAAAAAAAAAAAAAAAewAAAHhsL3NoYXJlZFN0cmluZ3MueG1sUEsBAhQAFAAAAAgAs3P/XGDIfyKMAAAAAgEAABgAAAAAAAAAAAAAAAAAHwEAAHhsL3dvcmtzaGVldHMvc2hlZXQxLnhtbFBLBQYAAAAAAwADAMkAAADhAQAAAAA='
 
-const readmeText = `# Universal File Viewer
+const readmeText = `# PreviewDock
 
-Universal File Viewer is a local-first, extensible browser runtime for previewing many file formats.
+PreviewDock is a local-first, extensible browser runtime for previewing many file formats.
 
 > Files stay in the browser unless a host explicitly enables a remote provider.
 

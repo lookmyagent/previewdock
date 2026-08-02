@@ -1,7 +1,7 @@
 {
-  "name": "@universal-file-viewer/adapter-text",
+  "name": "@previewdock/adapter-text",
   "version": "0.1.0",
-  "description": "Text preview adapter for Universal File Viewer",
+  "description": "Text preview adapter for PreviewDock",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -24,7 +24,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@universal-file-viewer/core": "workspace:*",
+    "@previewdock/core": "workspace:*",
     "dompurify": "^3.4.12",
     "marked": "^18.0.7"
   }

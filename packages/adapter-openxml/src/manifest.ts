@@ -1,4 +1,4 @@
-import type { AdapterRegistration } from '@universal-file-viewer/core'
+import type { AdapterRegistration } from '@previewdock/core'
 
 export const openXmlAdapterManifest: AdapterRegistration = {
   id: 'openxml',

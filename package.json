@@ -1,12 +1,12 @@
 {
-  "name": "universal-file-viewer-workspace",
+  "name": "previewdock-workspace",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.15.9",
   "scripts": {
-    "dev": "pnpm --filter @universal-file-viewer/playground dev",
-    "build": "pnpm -r --filter './packages/**' build && pnpm --filter @universal-file-viewer/playground build",
+    "dev": "pnpm --filter @previewdock/playground dev",
+    "build": "pnpm -r --filter './packages/**' build && pnpm --filter @previewdock/playground build",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:watch": "vitest"

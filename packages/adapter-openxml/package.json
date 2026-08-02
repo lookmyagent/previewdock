@@ -1,5 +1,5 @@
 {
-  "name": "@universal-file-viewer/adapter-openxml",
+  "name": "@previewdock/adapter-openxml",
   "version": "0.1.0",
   "description": "Browser-side high-fidelity DOCX, XLSX and PPTX preview adapter",
   "license": "Apache-2.0",
@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@aiden0z/pptx-renderer": "^1.2.4",
-    "@universal-file-viewer/core": "workspace:*",
+    "@previewdock/core": "workspace:*",
     "docx-preview": "^0.4.0",
     "fflate": "^0.8.3"
   }
