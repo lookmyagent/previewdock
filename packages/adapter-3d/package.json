@@ -1,0 +1,33 @@
+{
+  "name": "@universal-file-viewer/adapter-3d",
+  "version": "0.1.0",
+  "description": "Browser-side 3D model viewer for Universal File Viewer",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/manifest.ts --format esm --dts --clean --splitting",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@universal-file-viewer/core": "workspace:*",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.180.0"
+  }
+}

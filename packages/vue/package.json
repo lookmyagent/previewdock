@@ -1,0 +1,29 @@
+{
+  "name": "@universal-file-viewer/vue",
+  "version": "0.1.0",
+  "description": "Vue 3 host component for Universal File Viewer",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": ["**/*.css"],
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/universal-file-viewer.js"
+    },
+    "./style.css": "./dist/universal-file-viewer.css"
+  },
+  "scripts": {
+    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@universal-file-viewer/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  }
+}

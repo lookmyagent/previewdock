@@ -1,0 +1,22 @@
+{
+  "name": "@universal-file-viewer/core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic browser runtime for lazy file preview adapters",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

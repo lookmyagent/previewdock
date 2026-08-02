@@ -1,0 +1,33 @@
+{
+  "name": "@universal-file-viewer/adapter-archive",
+  "version": "0.1.0",
+  "description": "ZIP, JAR, TAR and GZIP directory browser with embedded file preview",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/manifest.ts --format esm --dts --clean --splitting",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@universal-file-viewer/core": "workspace:*",
+    "fflate": "^0.8.3",
+    "libarchive.js": "^2.0.2"
+  }
+}

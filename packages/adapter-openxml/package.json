@@ -1,0 +1,32 @@
+{
+  "name": "@universal-file-viewer/adapter-openxml",
+  "version": "0.1.0",
+  "description": "Browser-side high-fidelity DOCX, XLSX and PPTX preview adapter",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/manifest.ts --format esm --dts --clean --splitting",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aiden0z/pptx-renderer": "^1.2.4",
+    "@universal-file-viewer/core": "workspace:*",
+    "docx-preview": "^0.4.0",
+    "fflate": "^0.8.3"
+  }
+}

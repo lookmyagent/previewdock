@@ -1,0 +1,28 @@
+{
+  "name": "@universal-file-viewer/converter-zetaoffice",
+  "version": "0.1.0",
+  "description": "Pure browser DOC/PPT to PDF conversion through ZetaOffice WebAssembly",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "zetajs": "^1.2.0"
+  },
+  "peerDependencies": {
+    "@universal-file-viewer/adapter-legacy-office": "workspace:*"
+  }
+}

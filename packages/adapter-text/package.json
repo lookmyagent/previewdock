@@ -1,0 +1,31 @@
+{
+  "name": "@universal-file-viewer/adapter-text",
+  "version": "0.1.0",
+  "description": "Text preview adapter for Universal File Viewer",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/manifest.ts --format esm --dts --clean --splitting",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@universal-file-viewer/core": "workspace:*",
+    "dompurify": "^3.4.12",
+    "marked": "^18.0.7"
+  }
+}

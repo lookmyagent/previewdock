@@ -1,0 +1,6 @@
+Noto Sans CJK Simplified Chinese font
+
+Copyright 2014-2023 The Noto Project Authors.
+Licensed under the SIL Open Font License, Version 1.1.
+License text: https://scripts.sil.org/OFL
+Source: https://github.com/notofonts/noto-cjk
