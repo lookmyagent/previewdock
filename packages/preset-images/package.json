@@ -1,0 +1,11 @@
+{
+  "name": "@previewdock/preset-images",
+  "version": "0.1.0",
+  "description": "Official common and professional image preset for PreviewDock",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/preset-images" },
+  "type": "module", "sideEffects": false, "files": ["dist"], "publishConfig": { "access": "public" },
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "scripts": { "build": "tsup src/index.ts --format esm --dts --clean --splitting", "typecheck": "tsc --noEmit -p tsconfig.json" },
+  "dependencies": { "@previewdock/adapter-advanced-image": "workspace:*", "@previewdock/adapter-image": "workspace:*", "@previewdock/core": "workspace:*" }
+}

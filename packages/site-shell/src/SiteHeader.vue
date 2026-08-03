@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { getLocalizedPath, getSiteLocale, setSiteLocale, siteLabels } from './i18n'
+import { getLocalizedDocsPath, getLocalizedPath, getSiteLocale, setSiteLocale, siteLabels } from './i18n'
 import type { SiteLinks, SiteLocale, SiteSection } from './types'
 
 const props = defineProps<{
@@ -27,7 +27,7 @@ function toggleLocale() {
   const nextLocale = currentLocale.value === 'zh-CN' ? 'en' : 'zh-CN'
   setSiteLocale(nextLocale)
   if (typeof window !== 'undefined' && window.location.pathname.startsWith('/docs/')) {
-    window.location.assign(getLocalizedPath(props.links.docs, nextLocale))
+    window.location.assign(getLocalizedDocsPath(window.location.pathname, nextLocale))
     return
   }
   currentLocale.value = nextLocale

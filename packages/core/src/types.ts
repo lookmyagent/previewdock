@@ -21,6 +21,12 @@ export interface FileDescriptor {
   mimeType: string
   size: number
   head: Uint8Array
+  /**
+   * Reads an exclusive byte range without requiring the caller to materialize
+   * the complete file. Remote implementations may use HTTP Range requests.
+   */
+  readRange(start: number, end: number, signal?: AbortSignal): Promise<Uint8Array>
+  randomAccess: 'memory' | 'blob' | 'http-range'
 }
 
 export interface OpenFileOptions {

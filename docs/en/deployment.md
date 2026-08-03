@@ -1,45 +1,70 @@
-# Worker and WASM deployment
+# Runtime and deployment
 
-Text, images, PDF, and native browser media need no extra runtime. RAR, 7Z, legacy Office/WPS, and STEP/IGES/BREP require Worker, WASM, or font assets.
+PreviewDock's basic capabilities can ship with the frontend application. Complex archives, engineering models, and legacy Office files need additional runtime assets that the host should manage, cache, and authorize centrally.
 
-Pass all runtime locations through the official preset when it is used:
+## Base environment
+
+- Use an HTTPS production origin.
+- Ensure file URLs are authorized for frontend access and have correct cross-origin policy.
+- Version and cache static assets while keeping the application entry updatable.
+- Define business limits for file size, preview time, concurrency, and memory.
+- Validate target desktop and mobile browsers with representative business files.
+
+## Complex-format resources
+
+All mode can receive shared runtime configuration. Category mode can configure each Pack separately:
 
 ```ts
-const engine = createAllFormatEngine({
-  archive: { workerUrl: '/previewdock/libarchive/worker-bundle.js' },
-  model: {
-    occtWasmUrl: '/previewdock/occt/occt-import-js.wasm',
-    rhinoLibraryPath: '/previewdock/rhino/',
-    ifcWasmPath: '/previewdock/ifc/',
-  },
+const archives = createArchivesPack({
+  archive: { workerUrl: '/previewdock/archive/worker.js' },
+})
+
+const models = createThreeDCadPack({
+  model: { occtWasmUrl: '/previewdock/models/engineering.wasm' },
+})
+
+const documents = createDocumentsPack({
   legacyOffice: { converter },
 })
 ```
 
-## Archive
+The host controls asset URLs, filenames, and CDN structure. Pin versions in production so runtime assets always match the frontend packages.
 
-RAR/7Z use the `libarchive.js` Worker and `libarchive.wasm`. Copy them to the application static directory or CDN and pass the Worker URL through the manifest:
+## Large archive mode
 
-```ts
-createArchiveAdapterManifest({
-  workerUrl: '/previewdock/libarchive/worker-bundle.js',
-})
+PreviewDock provides two browser tiers:
+
+| Mode | File range | Formats | Behavior |
+| --- | --- | --- | --- |
+| Standard | Up to 100 MB | ZIP, JAR, TAR, GZIP, TGZ, RAR, 7Z | Browse directories and content in the browser |
+| Large file | 100 MB–1 GB | ZIP, JAR | Build a directory index, then read and extract only the selected entry |
+
+Local files need no additional configuration. Remote ZIP/JAR servers must:
+
+- accept `Range: bytes=...` and return `206 Partial Content`;
+- provide correct `Content-Length`, `Content-Range`, and `Accept-Ranges: bytes`;
+- allow the application origin in cross-origin deployments;
+- avoid dynamic content encoding for ZIP/JAR responses so byte offsets remain stable.
+
+RAR, 7Z, and TGZ files over 100 MB should use a server-assisted workflow because solid or sequential compression may require processing a full data block.
+
+## Cross-origin isolation
+
+Some large document-conversion capabilities require:
+
+```http
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
 ```
 
-Strict CSP must allow the Worker origin and `worker-src blob:` when the runtime patches a Worker in memory.
-
-## Legacy Office
-
-Legacy XLS uses SheetJS. DOC/PPT conversion is an opt-in ZetaOffice WASM path and may require about 53 MB of runtime plus fonts. Self-host and version the assets, configure caching and integrity, set file/memory/time limits, review licenses, and provide a clear fallback for unsupported browsers.
-
-## CAD / engineering models
-
-STEP, IGES, and BREP use `occt-import-js.wasm`. Self-host it at a stable same-origin URL and pass that URL to `createModelAdapterManifest({ occtWasmUrl })`. Apply long-lived caching and gateway limits for file size and conversion time. OFF and DXF do not need this WASM.
-
-3DM uses `rhino3dm.js` and `rhino3dm.wasm`. Host both files in one same-origin folder and point `rhinoLibraryPath` at that folder.
-
-IFC uses `web-ifc.wasm`. Host it in a same-origin folder and point `ifcWasmPath` at that folder.
+Before enabling these headers, test iframe, SSO, payment, and third-party script integrations. Cross-origin assets also need compatible CORS and resource-policy headers.
 
 ## Security boundary
 
-Do not execute macros, embedded scripts, or active content. Sanitize SVG, HTML, and Markdown. Limit archive entry counts, expansion size, and nesting depth. Remote conversion must be explicitly enabled by the host and clearly disclosed to the user.
+- Never execute macros, embedded scripts, or active content.
+- Sanitize text and graphics that may contain active content.
+- Limit archive entry count, expansion size, and nesting depth.
+- Remote conversion must be explicitly enabled by the host with clear user disclosure.
+- Review runtime-asset and font licenses for the intended product use.
+
+See [Legacy Office usage](/en/legacy-office) for product behavior and [Format support and compatibility](/en/format-support) for format status.

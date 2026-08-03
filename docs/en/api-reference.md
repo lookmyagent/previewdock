@@ -1,52 +1,31 @@
-# API reference
+# Component usage
 
-This page records the core public API for the current Early Preview. Names may change before the first stable release.
+This page contains only the public usage needed by an application integrating PreviewDock.
 
-## `createViewerEngine(packs)`
-
-Creates the preview engine. It closes the previous session, detects the file, resolves an adapter, and manages cancellation.
+## Create preview capabilities
 
 ```ts
-const engine = createViewerEngine([basicPack, officePack])
+// All mode
+const engine = createAllFormatEngine()
+
+// Category mode
+const engine = createViewerEngine([documentsPack, imagesPack])
 ```
 
-## `defineAdapterPack(options)`
+## Use the Vue component
 
-Groups manifests into a product capability:
+```vue
+<script setup lang="ts">
+import { PreviewDock } from '@previewdock/vue'
+import '@previewdock/vue/style.css'
+import { engine } from './preview-engine'
+</script>
 
-```ts
-const basicPack = defineAdapterPack({
-  id: 'basic',
-  label: 'Basic previews',
-  adapters: [textAdapterManifest, imageAdapterManifest],
-})
+<template>
+  <div style="height: 640px">
+    <PreviewDock :engine="engine" :source="file" :file-name="file.name" locale="en" />
+  </div>
+</template>
 ```
 
-## `ViewerEngine`
-
-- `open(source, options?)` accepts `Blob | ArrayBuffer | Uint8Array | string` and returns file information, a preview session, and cancellation.
-- `close()` cancels the current operation and disposes the active session.
-- `onStatus(listener)` observes `idle`, `loading-source`, `detecting`, `loading-adapter`, `opening`, `ready`, and `error`.
-
-## `PreviewAdapter` and `PreviewSession`
-
-```ts
-interface PreviewAdapter {
-  id: string
-  label: string
-  supports(file: FileDescriptor): boolean
-  open(file: FileDescriptor, signal: AbortSignal): Promise<PreviewSession>
-}
-
-interface PreviewSession {
-  adapterId: string
-  adapterLabel: string
-  capabilities: PreviewCapability[]
-  mount(container: HTMLElement, signal: AbortSignal): void | Promise<void>
-  dispose(): void | Promise<void>
-}
-```
-
-## Vue component
-
-Main props are `engine`, `source`, `fileName`, `locale` (`zh-CN` or `en`), and `showToolbar`. Main events are `status`, `ready`, and `error`.
+Common props are `engine`, `source`, `fileName`, `locale`, and `showToolbar`. Applications can listen for `status`, `ready`, and `error`. The host remains responsible for file selection, authorization, and download policy.

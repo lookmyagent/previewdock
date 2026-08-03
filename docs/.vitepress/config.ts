@@ -6,25 +6,25 @@ const docsSidebar = [
   {
     text: '开始使用',
     items: [
-      { text: '接入文档', link: '/' },
+      { text: '产品与接入概览', link: '/' },
       { text: '快速开始', link: '/getting-started' },
-      { text: '模块化接入与体积', link: '/modular-integration' },
+      { text: 'All 模式与分类模式', link: '/modular-integration' },
     ],
   },
   {
-    text: '核心概念',
+    text: '产品能力',
     items: [
-      { text: '架构设计', link: '/architecture' },
-      { text: 'API 参考', link: '/api-reference' },
-      { text: '部署 Worker / WASM', link: '/deployment' },
+      { text: '七大格式分类', link: '/categories' },
+      { text: '格式支持与兼容性', link: '/format-support' },
+      { text: '产品特点与边界', link: '/architecture' },
     ],
   },
   {
-    text: '格式与适配器',
+    text: '使用与上线',
     items: [
-      { text: '格式支持矩阵', link: '/format-support' },
-      { text: 'Legacy Office', link: '/legacy-office' },
-      { text: 'KKFileView 样例审计', link: '/kkfileview-sample-audit' },
+      { text: '组件使用', link: '/api-reference' },
+      { text: '运行环境与部署', link: '/deployment' },
+      { text: '旧版 Office 使用说明', link: '/legacy-office' },
     ],
   },
 ]
@@ -33,25 +33,25 @@ const enDocsSidebar = [
   {
     text: 'Getting started',
     items: [
-      { text: 'Integration guide', link: '/en/' },
+      { text: 'Product and integration overview', link: '/en/' },
       { text: 'Getting started', link: '/en/getting-started' },
-      { text: 'Modular integration and size', link: '/en/modular-integration' },
+      { text: 'All mode and category mode', link: '/en/modular-integration' },
     ],
   },
   {
-    text: 'Core concepts',
+    text: 'Product capabilities',
     items: [
-      { text: 'Architecture', link: '/en/architecture' },
-      { text: 'API reference', link: '/en/api-reference' },
-      { text: 'Worker / WASM deployment', link: '/en/deployment' },
+      { text: 'Seven format categories', link: '/en/categories' },
+      { text: 'Format support and compatibility', link: '/en/format-support' },
+      { text: 'Product principles and boundaries', link: '/en/architecture' },
     ],
   },
   {
-    text: 'Formats and adapters',
+    text: 'Usage and production',
     items: [
-      { text: 'Format support matrix', link: '/en/format-support' },
-      { text: 'Legacy Office', link: '/en/legacy-office' },
-      { text: 'KKFileView sample audit', link: '/en/kkfileview-sample-audit' },
+      { text: 'Component usage', link: '/en/api-reference' },
+      { text: 'Runtime and deployment', link: '/en/deployment' },
+      { text: 'Legacy Office usage', link: '/en/legacy-office' },
     ],
   },
 ]

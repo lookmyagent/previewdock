@@ -5,7 +5,7 @@ import { previewEngine } from './preview-engine'
 
 const fileInput = ref<HTMLInputElement>()
 const source = ref<File | null>(new File([
-  '# 欢迎使用 PreviewDock\n\n这是一个独立 Vue 项目中的预览组件。\n\n- 点击“选择文件”预览本地文本或图片\n- 当前示例只注册了文本和图片适配器\n- 需要 PDF、Office 等格式时，在 preview-engine.ts 中补充对应 manifest\n',
+  '# 欢迎使用 PreviewDock\n\n这是一个独立 Vue 项目中的预览组件。\n\n- 点击“选择文件”预览任意本地文件\n- 当前示例使用官方全格式预设\n- 复杂格式的解析器、Worker 和 WASM 都会按需加载\n',
 ], 'welcome.md', { type: 'text/markdown' }))
 const selectedName = ref('welcome.md')
 const status = ref('等待预览')
@@ -41,7 +41,7 @@ function restoreExample() {
         <button class="primary" type="button" @click="chooseFile">选择文件</button>
         <button class="secondary" type="button" @click="restoreExample">恢复文本示例</button>
       </div>
-      <p class="hint">文件选择不限制格式；当前已注册文本、图片和浏览器原生音视频预览。当前文件：<strong>{{ selectedName }}</strong></p>
+      <p class="hint">文件选择不限制格式；当前使用官方全格式预设。当前文件：<strong>{{ selectedName }}</strong></p>
     </section>
 
     <section class="preview-frame" aria-label="文件预览">

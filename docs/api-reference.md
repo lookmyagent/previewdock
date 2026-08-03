@@ -1,76 +1,59 @@
-# API 参考
+# 组件使用
 
-本页记录当前 Early Preview 的核心公共接口。稳定版本前可能调整。
+本页只介绍业务系统接入 PreviewDock 所需的公开用法。
 
-## `createViewerEngine(packs)`
+## 创建预览能力
 
-创建文件预览引擎。引擎负责关闭上一会话、检测文件、解析适配器并管理取消信号。
-
-```ts
-const engine = createViewerEngine([basicPack, officePack])
-```
-
-## `defineAdapterPack(options)`
-
-将一组 Manifest 组织成业务能力包。
+All 模式：
 
 ```ts
-const basicPack = defineAdapterPack({
-  id: 'basic',
-  label: 'Basic previews',
-  adapters: [textAdapterManifest, imageAdapterManifest],
-})
+import { createAllFormatEngine } from '@previewdock/preset-all'
+
+export const engine = createAllFormatEngine()
 ```
 
-## `ViewerEngine`
-
-### `open(source, options?)`
-
-接受 `Blob | ArrayBuffer | Uint8Array | string`，返回文件描述信息、预览 Session 和取消信号。
-
-### `close()`
-
-取消正在进行的打开操作并释放当前 Session。
-
-### `onStatus(listener)`
-
-监听 `idle`、`loading-source`、`detecting`、`loading-adapter`、`opening`、`ready` 和 `error` 状态。
-
-## `PreviewAdapter`
+分类模式：
 
 ```ts
-interface PreviewAdapter {
-  id: string
-  label: string
-  supports(file: FileDescriptor): boolean
-  open(file: FileDescriptor, signal: AbortSignal): Promise<PreviewSession>
-}
+import { createViewerEngine } from '@previewdock/core'
+import { documentsPack } from '@previewdock/preset-documents'
+import { imagesPack } from '@previewdock/preset-images'
+
+export const engine = createViewerEngine([documentsPack, imagesPack])
 ```
 
-## `PreviewSession`
+## 在 Vue 页面使用
 
-Session 声明能力、挂载渲染结果并负责确定性清理。
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { PreviewDock } from '@previewdock/vue'
+import '@previewdock/vue/style.css'
+import { engine } from './preview-engine'
 
-```ts
-interface PreviewSession {
-  adapterId: string
-  adapterLabel: string
-  capabilities: PreviewCapability[]
-  mount(container: HTMLElement, signal: AbortSignal): void | Promise<void>
-  dispose(): void | Promise<void>
-}
+const file = ref<File>()
+</script>
+
+<template>
+  <input type="file" @change="file = ($event.target as HTMLInputElement).files?.[0]">
+  <div class="preview-area">
+    <PreviewDock v-if="file" :engine="engine" :source="file" :file-name="file.name" locale="zh-CN" />
+  </div>
+</template>
+
+<style scoped>
+.preview-area { height: 640px; }
+</style>
 ```
 
-## Vue 组件
+## 常用属性
 
-主要 Props：
-
-| Prop | 说明 |
+| 属性 | 用途 |
 | --- | --- |
-| `engine` | 已注册能力包的 `ViewerEngine` |
-| `source` | 文件、二进制数据或 URL |
-| `fileName` | 用于扩展名检测和界面显示 |
+| `engine` | All 或分类模式创建的预览能力 |
+| `source` | `File`、`Blob`、二进制数据或授权 URL |
+| `fileName` | 用于展示文件名和确认文件类型 |
 | `locale` | `zh-CN` 或 `en` |
-| `showToolbar` | 是否显示宿主工具栏 |
+| `showToolbar` | 是否显示预览工具栏 |
 
-主要事件：`status`、`ready`、`error`。
+页面可以监听 `status`、`ready` 和 `error` 事件，展示加载状态、成功结果和友好错误提示。宿主系统继续负责文件选择、权限和下载策略。

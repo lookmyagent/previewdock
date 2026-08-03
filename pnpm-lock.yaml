@@ -139,6 +139,12 @@ importers:
 
   apps/vue-consumer-demo:
     dependencies:
+      '@previewdock/converter-zetaoffice':
+        specifier: workspace:*
+        version: link:../../packages/converter-zetaoffice
+      '@previewdock/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@previewdock/preset-all':
         specifier: workspace:*
         version: link:../../packages/preset-all
@@ -148,6 +154,9 @@ importers:
       vue:
         specifier: ^3.5.16
         version: 3.5.40(typescript@5.9.3)
+      zetajs:
+        specifier: ^1.2.0
+        version: 1.2.0
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^5.2.4
@@ -292,26 +301,68 @@ importers:
 
   packages/core: {}
 
-  packages/preset-all:
+  packages/preset-3d-cad:
     dependencies:
       '@previewdock/adapter-3d':
         specifier: workspace:*
         version: link:../adapter-3d
-      '@previewdock/adapter-advanced-image':
+      '@previewdock/core':
         specifier: workspace:*
-        version: link:../adapter-advanced-image
+        version: link:../core
+
+  packages/preset-all:
+    dependencies:
+      '@previewdock/core':
+        specifier: workspace:*
+        version: link:../core
+      '@previewdock/preset-3d-cad':
+        specifier: workspace:*
+        version: link:../preset-3d-cad
+      '@previewdock/preset-archives':
+        specifier: workspace:*
+        version: link:../preset-archives
+      '@previewdock/preset-diagrams':
+        specifier: workspace:*
+        version: link:../preset-diagrams
+      '@previewdock/preset-documents':
+        specifier: workspace:*
+        version: link:../preset-documents
+      '@previewdock/preset-images':
+        specifier: workspace:*
+        version: link:../preset-images
+      '@previewdock/preset-media':
+        specifier: workspace:*
+        version: link:../preset-media
+      '@previewdock/preset-text-data':
+        specifier: workspace:*
+        version: link:../preset-text-data
+
+  packages/preset-archives:
+    dependencies:
       '@previewdock/adapter-archive':
         specifier: workspace:*
         version: link:../adapter-archive
-      '@previewdock/adapter-image':
+      '@previewdock/core':
         specifier: workspace:*
-        version: link:../adapter-image
+        version: link:../core
+
+  packages/preset-diagrams:
+    dependencies:
       '@previewdock/adapter-legacy-office':
         specifier: workspace:*
         version: link:../adapter-legacy-office
-      '@previewdock/adapter-media':
+      '@previewdock/adapter-structured':
         specifier: workspace:*
-        version: link:../adapter-media
+        version: link:../adapter-structured
+      '@previewdock/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/preset-documents:
+    dependencies:
+      '@previewdock/adapter-legacy-office':
+        specifier: workspace:*
+        version: link:../adapter-legacy-office
       '@previewdock/adapter-openxml':
         specifier: workspace:*
         version: link:../adapter-openxml
@@ -321,6 +372,33 @@ importers:
       '@previewdock/adapter-structured':
         specifier: workspace:*
         version: link:../adapter-structured
+      '@previewdock/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/preset-images:
+    dependencies:
+      '@previewdock/adapter-advanced-image':
+        specifier: workspace:*
+        version: link:../adapter-advanced-image
+      '@previewdock/adapter-image':
+        specifier: workspace:*
+        version: link:../adapter-image
+      '@previewdock/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/preset-media:
+    dependencies:
+      '@previewdock/adapter-media':
+        specifier: workspace:*
+        version: link:../adapter-media
+      '@previewdock/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/preset-text-data:
+    dependencies:
       '@previewdock/adapter-text':
         specifier: workspace:*
         version: link:../adapter-text

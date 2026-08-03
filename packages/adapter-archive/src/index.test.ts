@@ -1,7 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { gunzipSync, strToU8, zipSync } from 'fflate'
-import { parseTarEntries, parseZipEntries, readGzipOriginalName } from './index'
+import {
+  archiveAdapter,
+  parseTarEntries,
+  parseZipEntries,
+  readGzipOriginalName,
+} from './index'
 import { createArchiveAdapterManifest } from './manifest'
 
 const samples = new URL('../../../apps/playground/public/samples/archives/', import.meta.url)
@@ -57,5 +62,33 @@ describe('archive formats', () => {
     ]))
     const manifest = entries.find(entry => entry.path === 'META-INF/MANIFEST.MF')
     expect(new TextDecoder().decode(manifest?.data)).toContain('Manifest-Version: 1.0')
+  })
+
+  it('caps ZIP/JAR large-file mode at 1 GB', async () => {
+    await expect(archiveAdapter.open({
+      source: new Blob(),
+      blob: new Blob(),
+      name: 'too-large.zip',
+      extension: 'zip',
+      mimeType: 'application/zip',
+      size: 1024 * 1024 * 1024 + 1,
+      head: new Uint8Array(),
+      readRange: async () => new Uint8Array(),
+      randomAccess: 'blob',
+    }, new AbortController().signal)).rejects.toThrow('1 GB')
+  })
+
+  it('keeps sequential and solid archive formats in the 100 MB standard mode', async () => {
+    await expect(archiveAdapter.open({
+      source: new Blob(),
+      blob: new Blob(),
+      name: 'large.tar',
+      extension: 'tar',
+      mimeType: 'application/x-tar',
+      size: 100 * 1024 * 1024 + 1,
+      head: new Uint8Array(),
+      readRange: async () => new Uint8Array(),
+      randomAccess: 'blob',
+    }, new AbortController().signal)).rejects.toThrow('100 MB')
   })
 })

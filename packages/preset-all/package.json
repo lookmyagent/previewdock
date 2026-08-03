@@ -38,16 +38,13 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@previewdock/adapter-3d": "workspace:*",
-    "@previewdock/adapter-advanced-image": "workspace:*",
-    "@previewdock/adapter-archive": "workspace:*",
-    "@previewdock/adapter-image": "workspace:*",
-    "@previewdock/adapter-legacy-office": "workspace:*",
-    "@previewdock/adapter-media": "workspace:*",
-    "@previewdock/adapter-openxml": "workspace:*",
-    "@previewdock/adapter-pdf": "workspace:*",
-    "@previewdock/adapter-structured": "workspace:*",
-    "@previewdock/adapter-text": "workspace:*",
-    "@previewdock/core": "workspace:*"
+    "@previewdock/core": "workspace:*",
+    "@previewdock/preset-3d-cad": "workspace:*",
+    "@previewdock/preset-archives": "workspace:*",
+    "@previewdock/preset-diagrams": "workspace:*",
+    "@previewdock/preset-documents": "workspace:*",
+    "@previewdock/preset-images": "workspace:*",
+    "@previewdock/preset-media": "workspace:*",
+    "@previewdock/preset-text-data": "workspace:*"
   }
 }

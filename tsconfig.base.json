@@ -38,6 +38,13 @@
       "@previewdock/adapter-structured/manifest": ["packages/adapter-structured/src/manifest.ts"],
       "@previewdock/adapter-structured/*": ["packages/adapter-structured/src/*"],
       "@previewdock/converter-zetaoffice": ["packages/converter-zetaoffice/src/index.ts"],
+      "@previewdock/preset-documents": ["packages/preset-documents/src/index.ts"],
+      "@previewdock/preset-text-data": ["packages/preset-text-data/src/index.ts"],
+      "@previewdock/preset-archives": ["packages/preset-archives/src/index.ts"],
+      "@previewdock/preset-images": ["packages/preset-images/src/index.ts"],
+      "@previewdock/preset-media": ["packages/preset-media/src/index.ts"],
+      "@previewdock/preset-diagrams": ["packages/preset-diagrams/src/index.ts"],
+      "@previewdock/preset-3d-cad": ["packages/preset-3d-cad/src/index.ts"],
       "@previewdock/preset-all": ["packages/preset-all/src/index.ts"],
       "@previewdock/vue": ["packages/vue/src/index.ts"]
     },

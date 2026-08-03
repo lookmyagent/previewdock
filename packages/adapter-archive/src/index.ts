@@ -3,14 +3,19 @@ import type {
   PreviewAdapter,
   PreviewSession,
 } from '@previewdock/core'
-import { gunzipSync, unzipSync } from 'fflate'
+import { gunzip, unzipSync } from 'fflate'
+import {
+  readZipDirectory,
+  readZipEntry,
+  type ZipSafetyLimits,
+} from './zip'
 
 interface ArchiveEntry {
   path: string
   size: number
   directory: boolean
   data?: Uint8Array
-  loadData?: () => Promise<Uint8Array>
+  loadData?: (signal: AbortSignal) => Promise<Uint8Array>
 }
 
 interface ArchiveListing {
@@ -35,6 +40,22 @@ export interface ArchiveRuntimeOptions {
   previewEntry?: (request: ArchiveEntryPreviewRequest) => (
     void | (() => void | Promise<void>) | Promise<void | (() => void | Promise<void>)>
   )
+  /** Product-level safety limits. Omitted values use production defaults. */
+  limits?: Partial<ArchiveSafetyLimits>
+}
+
+export interface ArchiveSafetyLimits {
+  normalInputSize: number
+  largeZipInputSize: number
+  normalExpandedSize: number
+  largeZipExpandedSize: number
+  maxEntrySize: number
+  normalEntries: number
+  largeZipEntries: number
+  maxCompressionRatio: number
+  maxDepth: number
+  directoryTimeoutMs: number
+  extractionTimeoutMs: number
 }
 
 export interface ArchiveEntryPreviewRequest {
@@ -45,6 +66,8 @@ export interface ArchiveEntryPreviewRequest {
 
 interface ArchiveLabels {
   entries: string
+  standardMode: string
+  largeMode: string
   root: string
   folder: string
   file: string
@@ -55,6 +78,7 @@ interface ArchiveLabels {
   previewing: string
   loading: string
   loadFailed: string
+  extractionTimeout: string
 }
 
 const archiveExtensions = new Set(['zip', 'jar', 'tar', 'gz', 'gzip', 'tgz', 'rar', '7z'])
@@ -70,13 +94,67 @@ const imageExtensions = new Set([
 const audioExtensions = new Set(['mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac', 'opus'])
 const videoExtensions = new Set(['mp4', 'webm', 'ogv', 'mov', 'm4v'])
 
-const MAX_INPUT_SIZE = 30 * 1024 * 1024
-const MAX_OUTPUT_SIZE = 100 * 1024 * 1024
-const MAX_ENTRIES = 5000
+const DEFAULT_LIMITS: ArchiveSafetyLimits = {
+  normalInputSize: 100 * 1024 * 1024,
+  largeZipInputSize: 1024 * 1024 * 1024,
+  normalExpandedSize: 500 * 1024 * 1024,
+  largeZipExpandedSize: 5 * 1024 * 1024 * 1024,
+  maxEntrySize: 100 * 1024 * 1024,
+  normalEntries: 10_000,
+  largeZipEntries: 20_000,
+  maxCompressionRatio: 100,
+  maxDepth: 16,
+  directoryTimeoutMs: 15_000,
+  extractionTimeoutMs: 30_000,
+}
+const MAX_OUTPUT_SIZE = DEFAULT_LIMITS.normalExpandedSize
+const MAX_ENTRIES = DEFAULT_LIMITS.normalEntries
 let runtimeOptions: ArchiveRuntimeOptions = {}
 
 export function configureArchiveRuntime(options: ArchiveRuntimeOptions = {}): void {
   runtimeOptions = { ...options }
+}
+
+function safetyLimits(): ArchiveSafetyLimits {
+  return { ...DEFAULT_LIMITS, ...runtimeOptions.limits }
+}
+
+function zipSafetyLimits(file: FileDescriptor): ZipSafetyLimits {
+  const limits = safetyLimits()
+  const large = file.size > limits.normalInputSize
+  return {
+    maxEntries: large ? limits.largeZipEntries : limits.normalEntries,
+    maxExpandedSize: large ? limits.largeZipExpandedSize : limits.normalExpandedSize,
+    maxEntrySize: limits.maxEntrySize,
+    maxCompressionRatio: limits.maxCompressionRatio,
+    maxDepth: limits.maxDepth,
+  }
+}
+
+async function withOperationTimeout<T>(
+  outerSignal: AbortSignal,
+  timeoutMs: number,
+  timeoutMessage: string,
+  operation: (signal: AbortSignal) => Promise<T>,
+): Promise<T> {
+  const controller = new AbortController()
+  let timedOut = false
+  const abort = () => controller.abort()
+  if (outerSignal.aborted) controller.abort()
+  outerSignal.addEventListener('abort', abort, { once: true })
+  const timer = globalThis.setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, timeoutMs)
+  try {
+    return await operation(controller.signal)
+  } catch (error) {
+    if (timedOut) throw new Error(timeoutMessage)
+    throw error
+  } finally {
+    globalThis.clearTimeout(timer)
+    outerSignal.removeEventListener('abort', abort)
+  }
 }
 
 function supportsArchive(file: FileDescriptor): boolean {
@@ -97,6 +175,8 @@ function labels(): ArchiveLabels {
   if (document.documentElement.lang.toLowerCase().startsWith('zh')) {
     return {
       entries: '个条目',
+      standardMode: '普通模式',
+      largeMode: '大文件模式 · 按文件读取',
       root: '压缩包',
       folder: '文件夹',
       file: '文件',
@@ -107,10 +187,13 @@ function labels(): ArchiveLabels {
       previewing: '正在查看',
       loading: '正在解压所选文件…',
       loadFailed: '文件解压失败',
+      extractionTimeout: '解压任务已超时',
     }
   }
   return {
     entries: 'entries',
+    standardMode: 'Standard mode',
+    largeMode: 'Large-file mode · reads selected entries',
     root: 'Archive',
     folder: 'Folder',
     file: 'File',
@@ -121,6 +204,7 @@ function labels(): ArchiveLabels {
     previewing: 'Previewing',
     loading: 'Extracting the selected file…',
     loadFailed: 'Unable to extract this file',
+    extractionTimeout: 'The extraction task timed out',
   }
 }
 
@@ -253,6 +337,37 @@ export function readGzipOriginalName(bytes: Uint8Array): string | undefined {
   return name ? baseName(name) : undefined
 }
 
+function gzipDeclaredSize(bytes: Uint8Array): number | undefined {
+  if (bytes.byteLength < 4) return undefined
+  const offset = bytes.byteLength - 4
+  return new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0, true)
+}
+
+function gunzipAsync(bytes: Uint8Array, signal: AbortSignal): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException('Archive operation was cancelled', 'AbortError'))
+      return
+    }
+    let settled = false
+    let terminate: () => void = () => undefined
+    const onAbort = () => {
+      if (settled) return
+      settled = true
+      terminate()
+      reject(new DOMException('Archive operation was cancelled', 'AbortError'))
+    }
+    terminate = gunzip(bytes, { consume: true }, (error, output) => {
+      if (settled) return
+      settled = true
+      signal.removeEventListener('abort', onAbort)
+      if (error) reject(error)
+      else resolve(output)
+    })
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+}
+
 function addImplicitDirectories(entries: ArchiveEntry[]): ArchiveEntry[] {
   const result = new Map<string, ArchiveEntry>()
   for (const entry of entries) {
@@ -277,6 +392,28 @@ function addImplicitDirectories(entries: ArchiveEntry[]): ArchiveEntry[] {
   return [...result.values()]
 }
 
+function validateEntryBudget(
+  entries: Array<Pick<ArchiveEntry, 'path' | 'size' | 'directory'>>,
+  limits: ArchiveSafetyLimits,
+): void {
+  if (entries.length > limits.normalEntries) {
+    throw new Error(`Archive contains more than ${limits.normalEntries} entries`)
+  }
+  let expandedSize = 0
+  for (const entry of entries) {
+    if (normalizePath(entry.path).split('/').length > limits.maxDepth) {
+      throw new Error(`Archive path exceeds the ${limits.maxDepth}-level depth limit`)
+    }
+    if (!entry.directory && entry.size > limits.maxEntrySize) {
+      throw new Error('Archive contains a file larger than the per-file preview limit')
+    }
+    expandedSize += entry.size
+    if (expandedSize > limits.normalExpandedSize) {
+      throw new Error('Expanded archive exceeds the normal-mode preview budget')
+    }
+  }
+}
+
 export function parseZipEntries(bytes: Uint8Array): ArchiveEntry[] {
   const files = unzipSync(bytes)
   const archiveEntries = Object.entries(files)
@@ -287,7 +424,7 @@ export function parseZipEntries(bytes: Uint8Array): ArchiveEntry[] {
   return archiveEntries.map(([name, value]) => {
     expandedSize += value.byteLength
     if (expandedSize > MAX_OUTPUT_SIZE) {
-      throw new Error('Expanded archive exceeds the 100 MB preview limit')
+      throw new Error('Expanded archive exceeds the default preview budget')
     }
     return {
       path: normalizePath(name),
@@ -384,9 +521,13 @@ function createArchiveView(
   let activeUrl = ''
   let previewToken = 0
   let nestedPreviewController: AbortController | undefined
+  let extractionController: AbortController | undefined
+  let loadedEntry: ArchiveEntry | undefined
   let disposeNestedPreview: (() => void | Promise<void>) | undefined
 
   const clearNestedPreview = async () => {
+    extractionController?.abort()
+    extractionController = undefined
     nestedPreviewController?.abort()
     nestedPreviewController = undefined
     const dispose = disposeNestedPreview
@@ -405,12 +546,15 @@ function createArchiveView(
     return activeUrl
   }
 
-  const loadEntryData = async (entry: ArchiveEntry): Promise<Uint8Array> => {
+  const loadEntryData = async (
+    entry: ArchiveEntry,
+    signal: AbortSignal,
+  ): Promise<Uint8Array> => {
     if (entry.data) return entry.data
     if (!entry.loadData) return new Uint8Array()
-    const data = await entry.loadData()
-    if (data.byteLength > MAX_OUTPUT_SIZE) {
-      throw new Error('Expanded file exceeds the 100 MB preview limit')
+    const data = await entry.loadData(signal)
+    if (data.byteLength > safetyLimits().maxEntrySize) {
+      throw new Error('Expanded file exceeds the per-file preview limit')
     }
     entry.data = data
     return data
@@ -424,6 +568,10 @@ function createArchiveView(
     preview.replaceChildren()
     const copy = labels()
     const entry = entries.find(item => item.path === selectedPath && !item.directory)
+    if (loadedEntry && loadedEntry !== entry && loadedEntry.loadData) {
+      loadedEntry.data = undefined
+      loadedEntry = undefined
+    }
     if (!entry) {
       const empty = document.createElement('div')
       empty.className = 'ufv-archive-preview-empty'
@@ -463,16 +611,36 @@ function createArchiveView(
     content.append(loading)
     preview.append(header, content)
 
+    const extraction = new AbortController()
+    extractionController = extraction
+    let extractionTimedOut = false
+    const abortExtraction = () => extraction.abort()
+    outerSignal.addEventListener('abort', abortExtraction, { once: true })
+    const extractionTimer = globalThis.setTimeout(() => {
+      extractionTimedOut = true
+      extraction.abort()
+    }, safetyLimits().extractionTimeoutMs)
     try {
-      await loadEntryData(entry)
+      await loadEntryData(entry, extraction.signal)
+      globalThis.clearTimeout(extractionTimer)
+      outerSignal.removeEventListener('abort', abortExtraction)
+      if (extraction.signal.aborted || token !== previewToken) return
+      extractionController = undefined
+      if (entry.loadData) loadedEntry = entry
     } catch (error) {
-      if (token !== previewToken) return
+      globalThis.clearTimeout(extractionTimer)
+      outerSignal.removeEventListener('abort', abortExtraction)
+      if ((extraction.signal.aborted && !extractionTimedOut) || token !== previewToken) return
+      extractionController = undefined
       const failed = document.createElement('div')
       failed.className = 'ufv-archive-preview-empty'
       const failedIcon = document.createElement('span')
       failedIcon.textContent = '!'
       const failedText = document.createElement('p')
-      failedText.textContent = `${copy.loadFailed}: ${error instanceof Error ? error.message : String(error)}`
+      const reason = extractionTimedOut
+        ? copy.extractionTimeout
+        : error instanceof Error ? error.message : String(error)
+      failedText.textContent = `${copy.loadFailed}: ${reason}`
       failed.append(failedIcon, failedText)
       content.replaceChildren(failed)
       return
@@ -636,7 +804,10 @@ function createArchiveView(
 
   const render = () => {
     const copy = labels()
-    summary.textContent = `${file.name} · ${sourceEntries.length} ${copy.entries}`
+    const mode = file.size > safetyLimits().normalInputSize
+      ? copy.largeMode
+      : copy.standardMode
+    summary.textContent = `${file.name} · ${sourceEntries.length} ${copy.entries} · ${mode}`
     renderBreadcrumbs()
     renderEntries()
     void renderPreview()
@@ -656,6 +827,8 @@ function createArchiveView(
       previewToken += 1
       await clearNestedPreview()
       revokeActiveUrl()
+      if (loadedEntry?.loadData) loadedEntry.data = undefined
+      loadedEntry = undefined
     },
   }
 }
@@ -771,7 +944,11 @@ function flattenExtractedFiles(
 async function listLibarchiveEntries(
   file: FileDescriptor,
   signal: AbortSignal,
+  limits: ArchiveSafetyLimits,
 ): Promise<ArchiveListing> {
+  const assertActive = () => {
+    if (signal.aborted) throw new DOMException('Preview was cancelled', 'AbortError')
+  }
   const { Archive } = await import('libarchive.js')
   const worker = await prepareLibarchiveWorker()
   Archive.init(worker.options)
@@ -786,18 +963,23 @@ async function listLibarchiveEntries(
     throw error
   }
   try {
-    if (signal.aborted) throw new DOMException('Preview was cancelled', 'AbortError')
+    assertActive()
     try { await reader.setLocale('zh_CN.UTF-8') } catch { /* use library default */ }
-    if (await reader.hasEncryptedData()) {
+    assertActive()
+    const encrypted = await reader.hasEncryptedData()
+    assertActive()
+    if (encrypted) {
       throw new Error('Password-protected RAR/7Z archives require a password and cannot be opened yet')
     }
     let files = await reader.getFilesArray()
+    assertActive()
     if (!files.length) {
       // libarchive reports regular RAR files through getFilesArray(), but
       // some 7Z headers expose their type differently. Its full extraction
       // API still returns the complete nested tree, so use it as a 7Z-only
       // compatibility fallback.
       const extractedTree = await reader.extractFiles()
+      assertActive()
       const extracted = flattenExtractedFiles(extractedTree)
       files = extracted.map(item => ({
         path: '',
@@ -810,29 +992,42 @@ async function listLibarchiveEntries(
         },
       }))
     }
-    if (files.length > MAX_ENTRIES) {
-      throw new Error(`Archive contains more than ${MAX_ENTRIES} entries`)
+    if (files.length > limits.normalEntries) {
+      throw new Error(`Archive contains more than ${limits.normalEntries} entries`)
     }
     const expandedSize = files.reduce((total, item) => total + item.file.size, 0)
-    if (expandedSize > MAX_OUTPUT_SIZE) {
-      throw new Error('Expanded archive exceeds the 100 MB preview limit')
+    if (expandedSize > limits.normalExpandedSize) {
+      throw new Error('Expanded archive exceeds the normal-mode preview budget')
     }
+    if (
+      expandedSize > 1024 * 1024
+      && expandedSize / Math.max(1, file.size) > limits.maxCompressionRatio
+    ) {
+      throw new Error('Archive has an unsafe compression ratio')
+    }
+    validateEntryBudget(files.map(item => ({
+      path: item.path ? `${item.path}/${item.file.name}` : item.file.name,
+      size: item.file.size,
+      directory: false,
+    })), limits)
     const entries = files.map((item): ArchiveEntry => {
       const path = normalizePath(item.path
         ? `${item.path}/${item.file.name}`
         : item.file.name)
-      let dataPromise: Promise<Uint8Array> | undefined
       return {
         path,
         size: item.file.size,
         directory: false,
-        loadData: () => {
-          if (!dataPromise) {
-            dataPromise = item.file.extract().then(async extracted => (
-              new Uint8Array(await extracted.arrayBuffer())
-            ))
+        loadData: async (entrySignal) => {
+          if (entrySignal.aborted) {
+            throw new DOMException('Archive operation was cancelled', 'AbortError')
           }
-          return dataPromise
+          const extracted = await item.file.extract()
+          const data = new Uint8Array(await extracted.arrayBuffer())
+          if (entrySignal.aborted) {
+            throw new DOMException('Archive operation was cancelled', 'AbortError')
+          }
+          return data
         },
       }
     })
@@ -851,8 +1046,32 @@ async function listLibarchiveEntries(
 }
 
 async function listEntries(file: FileDescriptor, signal: AbortSignal): Promise<ArchiveListing> {
-  if (file.size > MAX_INPUT_SIZE) {
-    throw new Error('Archive exceeds the 30 MB browser preview limit')
+  const limits = safetyLimits()
+  const zip = file.extension === 'zip'
+    || file.extension === 'jar'
+    || ['application/zip', 'application/java-archive'].includes(file.mimeType)
+
+  if (zip) {
+    if (file.size > limits.largeZipInputSize) {
+      throw new Error('ZIP/JAR exceeds the 1 GB large-file preview limit')
+    }
+    const safety = zipSafetyLimits(file)
+    const entries = await readZipDirectory(file, signal, safety)
+    return {
+      entries: entries.map(entry => ({
+        path: entry.path,
+        size: entry.size,
+        directory: entry.directory,
+        loadData: entry.directory
+          ? undefined
+          : entrySignal => readZipEntry(file, entry, entrySignal, safety.maxEntrySize),
+      })),
+      dispose: () => undefined,
+    }
+  }
+
+  if (file.size > limits.normalInputSize) {
+    throw new Error('This archive format exceeds the 100 MB browser preview limit')
   }
   if (
     file.extension === 'rar'
@@ -860,13 +1079,15 @@ async function listEntries(file: FileDescriptor, signal: AbortSignal): Promise<A
     || ['application/vnd.rar', 'application/x-rar-compressed', 'application/x-7z-compressed']
       .includes(file.mimeType)
   ) {
-    return listLibarchiveEntries(file, signal)
+    return listLibarchiveEntries(file, signal, limits)
   }
   const bytes = new Uint8Array(await file.blob.arrayBuffer())
   if (signal.aborted) throw new DOMException('Preview was cancelled', 'AbortError')
 
   if (file.extension === 'tar' || file.mimeType === 'application/x-tar') {
-    return { entries: parseTarEntries(bytes), dispose: () => undefined }
+    const entries = parseTarEntries(bytes)
+    validateEntryBudget(entries, limits)
+    return { entries, dispose: () => undefined }
   }
   if (
     file.extension === 'gz'
@@ -875,11 +1096,27 @@ async function listEntries(file: FileDescriptor, signal: AbortSignal): Promise<A
     || file.mimeType === 'application/gzip'
     || file.mimeType === 'application/x-gzip'
   ) {
-    const unpacked = gunzipSync(bytes)
-    if (unpacked.byteLength > MAX_OUTPUT_SIZE) {
-      throw new Error('Expanded archive exceeds the 100 MB preview limit')
+    const expectedSize = gzipDeclaredSize(bytes)
+    if (expectedSize !== undefined) {
+      if (expectedSize > limits.normalExpandedSize) {
+        throw new Error('Expanded archive exceeds the normal-mode preview budget')
+      }
+      if (
+        expectedSize > 1024 * 1024
+        && expectedSize / Math.max(1, file.size) > limits.maxCompressionRatio
+      ) {
+        throw new Error('Archive has an unsafe compression ratio')
+      }
+    }
+    const unpacked = await gunzipAsync(bytes, signal)
+    if (unpacked.byteLength > limits.normalExpandedSize) {
+      throw new Error('Expanded archive exceeds the normal-mode preview budget')
     }
     const tarEntries = parseTarEntries(unpacked)
+    validateEntryBudget(tarEntries, limits)
+    if (!tarEntries.length && unpacked.byteLength > limits.maxEntrySize) {
+      throw new Error('Expanded file exceeds the per-file preview limit')
+    }
     return {
       entries: tarEntries.length
         ? tarEntries
@@ -903,7 +1140,13 @@ export const archiveAdapter: PreviewAdapter = {
   label: 'Archive browser',
   supports: supportsArchive,
   async open(file, signal): Promise<PreviewSession> {
-    const listing = await listEntries(file, signal)
+    const limits = safetyLimits()
+    const listing = await withOperationTimeout(
+      signal,
+      limits.directoryTimeoutMs,
+      'Archive directory reading timed out',
+      operationSignal => listEntries(file, operationSignal),
+    )
     let root: HTMLElement | undefined
     let disposeView: (() => void | Promise<void>) | undefined
     return {

@@ -269,33 +269,109 @@
       <aside class="source-panel">
         <div class="panel-title">
           <strong>{{ t('source') }}</strong>
-          <span>{{ samples.length }} {{ t('samples') }}</span>
+          <span>{{ officialSampleCount }} {{ t('samples') }}</span>
         </div>
         <label class="search">
           <span aria-hidden="true">⌕</span>
           <input v-model.trim="query" type="search" :placeholder="t('searchFiles')">
         </label>
-        <div class="file-list">
-          <button
-            v-for="sample in filteredSamples"
-            :key="sample.id"
-            :data-sample-id="sample.id"
-            type="button"
-            class="file-row"
-            :class="{ 'file-row--active': activeFile.id === sample.id }"
-            @click="selectSample(sample)"
+        <div class="file-categories">
+          <section v-if="localSamples.length" class="file-category file-category--local">
+            <div class="category-row category-row--static">
+              <span class="category-row__mark">ME</span>
+              <span class="category-row__copy">
+                <strong>{{ t('localFiles') }}</strong>
+                <small>{{ localSamples.length }} {{ t('files') }}</small>
+              </span>
+            </div>
+            <div class="file-list">
+              <button
+                v-for="sample in localSamples"
+                :key="sample.id"
+                :data-sample-id="sample.id"
+                type="button"
+                class="file-row"
+                :class="{ 'file-row--active': activeFile.id === sample.id }"
+                @click="selectSample(sample)"
+              >
+                <span class="file-row__icon" :data-kind="sample.kind">{{ sample.shortType }}</span>
+                <span class="file-row__content">
+                  <strong>{{ sample.name }}</strong>
+                  <small>{{ sampleLabel(sample) }} · {{ formatSize(sampleSize(sample)) }}</small>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <section
+            v-for="group in sampleGroups"
+            :key="group.id"
+            class="file-category"
+            :class="{ 'file-category--open': isCategoryOpen(group.id) }"
           >
-            <span class="file-row__icon" :data-kind="sample.kind">{{ sample.shortType }}</span>
-            <span class="file-row__content">
-              <strong>{{ sample.name }}</strong>
-              <small>{{ sampleLabel(sample) }} · {{ formatSize(sampleSize(sample)) }}</small>
-            </span>
-          </button>
+            <button
+              type="button"
+              class="category-row"
+              :aria-expanded="isCategoryOpen(group.id)"
+              :aria-label="`${isCategoryOpen(group.id) ? t('collapseCategory') : t('expandCategory')}：${group.title}`"
+              @click="toggleCategory(group.id)"
+            >
+              <span class="category-row__mark" :data-category="group.id">{{ group.mark }}</span>
+              <span class="category-row__copy">
+                <strong>{{ group.title }}</strong>
+                <small>{{ group.formats }}</small>
+              </span>
+              <span class="category-row__count">{{ group.items.length }}</span>
+              <span class="category-row__chevron" aria-hidden="true">›</span>
+            </button>
+
+            <div v-if="isCategoryOpen(group.id)" class="file-list">
+              <button
+                v-for="sample in group.items"
+                :key="sample.id"
+                :data-sample-id="sample.id"
+                type="button"
+                class="file-row"
+                :class="{ 'file-row--active': activeFile.id === sample.id }"
+                @click="selectSample(sample)"
+              >
+                <span class="file-row__icon" :data-kind="sample.kind">{{ sample.shortType }}</span>
+                <span class="file-row__content">
+                  <strong>{{ sample.name }}</strong>
+                  <small>{{ sampleLabel(sample) }} · {{ formatSize(sampleSize(sample)) }}</small>
+                  <small v-if="sample.formats?.length" class="file-row__formats">
+                    {{ t('formatCoverage') }} {{ sample.formats.join(' · ') }}
+                  </small>
+                </span>
+              </button>
+            </div>
+          </section>
+
+          <p v-if="!visibleSampleCount" class="file-list__empty">{{ t('noMatchingFiles') }}</p>
         </div>
       </aside>
 
-      <section class="preview-panel">
-        <div class="tabbar"><span>{{ t('preview') }}</span></div>
+      <section ref="previewPanelRef" class="preview-panel" :class="{ 'preview-panel--fullscreen': isPreviewFullscreen }">
+        <div class="tabbar">
+          <span>{{ t('preview') }}</span>
+          <strong class="tabbar__filename">{{ activeFile.name }}</strong>
+          <button
+            type="button"
+            class="fullscreen-button"
+            :aria-label="isPreviewFullscreen ? t('exitFullscreen') : t('enterFullscreen')"
+            :title="isPreviewFullscreen ? t('exitFullscreen') : t('enterFullscreen')"
+            :aria-pressed="isPreviewFullscreen"
+            @click="togglePreviewFullscreen"
+          >
+            <svg v-if="!isPreviewFullscreen" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/>
+            </svg>
+            <svg v-else viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5"/>
+            </svg>
+            <em>{{ isPreviewFullscreen ? t('exitFullscreen') : t('enterFullscreen') }}</em>
+          </button>
+        </div>
         <PreviewDock
           :engine="engine"
           :source="activeFile.source"
@@ -359,7 +435,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, ref, watch } from 'vue'
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   ViewerEngine,
   type FileSource,
@@ -373,18 +449,38 @@ import { strToU8, zipSync } from 'fflate'
 import { getSiteLocale, setSiteLocale, SiteHeader } from '@previewdock/site-shell'
 import '@previewdock/site-shell/style.css'
 import { projectLinks } from '../../../config/project'
+import { createVirtualLargeZip } from './virtual-large-zip'
 
 const assetBase = import.meta.env.BASE_URL
+const generatedSampleBase = `${assetBase}samples/generated/`
 
 interface SampleFile {
   id: string
   name: string
   labelKey?: UiKey
   customLabel?: string
+  customLabelEn?: string
   shortType: string
   kind: string
   source: FileSource
   size?: number
+  formats?: string[]
+}
+
+type SampleCategoryId =
+  | 'documents'
+  | 'text-data'
+  | 'archives'
+  | 'images'
+  | 'media'
+  | 'diagrams'
+  | '3d-cad'
+
+interface SampleCategory {
+  id: SampleCategoryId
+  mark: string
+  titleKey: UiKey
+  formats: string
 }
 
 interface InspectorState {
@@ -400,7 +496,13 @@ const ui = {
     home: 'Home', online: 'Playground', docs: 'Docs', localNotice: 'Your file stays in this browser',
     openFile: 'Open file', language: 'Language', detectionMode: 'File detection mode',
     autoDetect: 'Auto detect', extensionFirst: 'Extension first', magicFirst: 'Magic bytes first',
-    source: 'Source', samples: 'samples', searchFiles: 'Search files', preview: 'Preview',
+    source: 'Sample files', samples: 'examples', searchFiles: 'Search names or formats', preview: 'Preview',
+    files: 'files', localFiles: 'My files', formatCoverage: 'Also covers:',
+    expandCategory: 'Expand category', collapseCategory: 'Collapse category',
+    enterFullscreen: 'Full screen', exitFullscreen: 'Exit full screen', noMatchingFiles: 'No matching examples',
+    categoryDocuments: 'Office & Documents', categoryTextData: 'Text & Data',
+    categoryArchives: 'Archives', categoryImages: 'Images', categoryMedia: 'Media',
+    categoryDiagrams: 'Diagrams', category3dCad: '3D & CAD',
     inspector: 'Inspector', detectedFormat: 'Detected format', renderer: 'Renderer',
     loadingMode: 'Loading mode', lazyImport: 'Lazy adapter import', capabilities: 'Capabilities',
     waitingRenderer: 'Waiting for renderer', resourceStatus: 'Resource status', fileName: 'File name',
@@ -423,7 +525,13 @@ const ui = {
     home: '首页', online: '在线预览', docs: '文档', localNotice: '文件仅在当前浏览器中处理',
     openFile: '打开文件', language: '语言', detectionMode: '文件识别方式',
     autoDetect: '自动识别', extensionFirst: '扩展名优先', magicFirst: '文件特征优先',
-    source: '文件', samples: '个示例', searchFiles: '搜索文件', preview: '预览',
+    source: '示例文件', samples: '个示例', searchFiles: '搜索文件名或格式', preview: '预览',
+    files: '个文件', localFiles: '我的文件', formatCoverage: '同时覆盖：',
+    expandCategory: '展开类别', collapseCategory: '收起类别',
+    enterFullscreen: '全屏预览', exitFullscreen: '退出全屏', noMatchingFiles: '没有匹配的示例',
+    categoryDocuments: 'Office 与文档', categoryTextData: '文本与数据',
+    categoryArchives: '压缩包', categoryImages: '图片', categoryMedia: '音视频',
+    categoryDiagrams: '图表与流程', category3dCad: '3D 与 CAD',
     inspector: '检查器', detectedFormat: '识别格式', renderer: '渲染器',
     loadingMode: '加载方式', lazyImport: '适配器按需加载', capabilities: '具备能力',
     waitingRenderer: '等待渲染器', resourceStatus: '资源状态', fileName: '文件名',
@@ -450,6 +558,51 @@ const locale = ref<ViewerLocale>(getSiteLocale())
 function t(key: UiKey): string {
   return ui[locale.value][key]
 }
+
+const sampleCategories: SampleCategory[] = [
+  {
+    id: 'documents',
+    mark: 'DOC',
+    titleKey: 'categoryDocuments',
+    formats: 'PDF · DOC/XLS/PPT · DOCX/XLSX/PPTX · WPS/ET/DPS · ODF/OFD/EPUB/EML/RTF',
+  },
+  {
+    id: 'text-data',
+    mark: '{ }',
+    titleKey: 'categoryTextData',
+    formats: 'TXT · MD · CSV · TSV · JSON · XML · LOG · JS/TS · CSS/HTML · JAVA/PHP/PY/SQL/SH',
+  },
+  {
+    id: 'archives',
+    mark: 'ARC',
+    titleKey: 'categoryArchives',
+    formats: 'ZIP · JAR · RAR · 7Z · TAR · GZ/GZIP · TGZ',
+  },
+  {
+    id: 'images',
+    mark: 'IMG',
+    titleKey: 'categoryImages',
+    formats: 'PNG · JPG/JPEG/JFIF · GIF · WEBP · BMP · ICO · SVG · TIF/TIFF · TGA · PSD',
+  },
+  {
+    id: 'media',
+    mark: 'AV',
+    titleKey: 'categoryMedia',
+    formats: 'MP3 · WAV · OGG/OGA · M4A/AAC · FLAC · OPUS · MP4/M4V/MOV · WEBM · OGV',
+  },
+  {
+    id: 'diagrams',
+    mark: 'MAP',
+    titleKey: 'categoryDiagrams',
+    formats: 'BPMN · XMIND · VSDX · VSD · WMF · EMF',
+  },
+  {
+    id: '3d-cad',
+    mark: '3D',
+    titleKey: 'category3dCad',
+    formats: 'GLTF/GLB · OBJ · STL · PLY · FBX · DAE · 3DS · 3MF · WRL · OFF · DXF · 3DM · IFC · STEP/STP · IGES/IGS · BREP',
+  },
+]
 
 const featuredFormats = [
   'DOC / DOCX', 'XLS / XLSX', 'PPT / PPTX', 'PDF', 'ZIP / RAR / 7Z',
@@ -489,7 +642,7 @@ const marketing = computed(() => {
         { title: '本地优先', description: '文件默认留在浏览器中，降低数据外传与跨域服务依赖。', icon: featureIcons.local },
         { title: '按需加载', description: '只有打开对应格式时才下载适配器与 WASM 资源。', icon: featureIcons.lazy },
         { title: '模块化接入', description: '基础、Office、压缩包、3D 等能力包可独立安装组合。', icon: featureIcons.modules },
-        { title: '压缩包深度预览', description: '支持多级目录浏览、内嵌文件预览与原文件下载。', icon: featureIcons.archive },
+        { title: '压缩包深度预览', description: '普通模式支持 100 MB；ZIP/JAR 大文件模式最高 1 GB，并按选中文件解压。', icon: featureIcons.archive },
         { title: '统一交互体验', description: '不同格式共用一套加载、错误、取消与生命周期协议。', icon: featureIcons.render },
         { title: '安全边界清晰', description: '宏、脚本与活动内容不执行，远程处理必须显式启用。', icon: featureIcons.safe },
       ],
@@ -503,7 +656,7 @@ const marketing = computed(() => {
       plans: [
         { title: '轻量基础版', description: '适合消息附件、审批附件和简单文件详情页。', cost: '约 80 KB', costNote: '基础浏览器代码，压缩前', capabilities: ['文本、Markdown 与数据文件', '常见图片与 SVG', '浏览器原生 PDF'], pack: 'core + vue + basic', featured: true },
         { title: '企业文档版', description: '适合知识库、协作平台和办公文档中心。', cost: '约 1.3 MB', costNote: 'Office 渲染器按类型加载', capabilities: ['包含轻量基础能力', 'DOCX / XLSX / PPTX', '现代 Office 高保真预览'], pack: 'basic + modern-office', featured: false },
-        { title: '文件中心版', description: '适合网盘、资产库和需要查看压缩包内容的系统。', cost: '约 1.1 MB', costNote: 'RAR / 7Z Worker 与 WASM', capabilities: ['包含基础与 Office 能力', 'ZIP / RAR / 7Z / TAR', '压缩包内文件继续预览'], pack: 'basic + office + archive', featured: false },
+        { title: '文件中心版', description: '适合网盘、资产库和需要查看压缩包内容的系统。', cost: '约 1.1 MB', costNote: 'RAR / 7Z Worker 与 WASM', capabilities: ['包含基础与 Office 能力', 'ZIP/JAR 最高 1 GB', '目录浏览与按文件解压'], pack: 'basic + office + archive', featured: false },
         { title: '专业全能力版', description: '适合设计资产、工程模型和复杂历史文档场景。', cost: '按需组合', costNote: '旧版 DOC / PPT 可选约 53 MB WASM', capabilities: ['PSD / TIFF 等高级图片', '主流 3D 模型交互预览', '可选旧版 Office 转换'], pack: 'selected packs + optional WASM', featured: false },
       ],
       plansNote: '以上为当前工作区的未压缩近似值；生产环境会受压缩、缓存、依赖去重与浏览器能力影响。',
@@ -511,7 +664,7 @@ const marketing = computed(() => {
       formatsDescription: '当前实现以“能呈现有用内容”为支持标准，并明确区分原生、实验性与可选转换能力。',
       formatFamilies: [
         { mark: 'W', title: 'Office 办公文档', formats: 'DOC / DOCX · XLS / XLSX · PPT / PPTX', note: '新版高保真渲染，旧版格式按需转换', color: '#4263eb' },
-        { mark: 'A', title: '压缩包', formats: 'ZIP · RAR · 7Z · TAR · GZIP · JAR', note: '目录树、多级打开、内嵌预览与下载', color: '#9a55d6' },
+        { mark: 'A', title: '压缩包', formats: 'ZIP · RAR · 7Z · TAR · GZIP · JAR', note: '普通模式 100 MB；ZIP/JAR 大文件模式最高 1 GB', color: '#9a55d6' },
         { mark: 'I', title: '图片与设计素材', formats: 'PNG · JPEG · SVG · TIFF · TGA · PSD', note: '缩放、旋转、镜像与画布渲染', color: '#d95c7d' },
         { mark: '3D', title: '3D 模型', formats: 'GLB · glTF · OBJ · STL · FBX · DAE · 3MF', note: '轨道控制、动画、线框与重置视图', color: '#0f9f85' },
         { mark: 'T', title: '文本与数据', formats: 'TXT · MD · CSV · TSV · JSON · XML · Source', note: '源码与格式化视图，内容安全清洗', color: '#e28a32' },
@@ -548,7 +701,7 @@ const marketing = computed(() => {
       { title: 'Local-first', description: 'Files stay in the browser by default, reducing data exposure and service dependencies.', icon: featureIcons.local },
       { title: 'Lazy-loaded', description: 'Adapters and WASM assets arrive only when their matching format is opened.', icon: featureIcons.lazy },
       { title: 'Modular packs', description: 'Install and combine basic, Office, archive, 3D, and other packs independently.', icon: featureIcons.modules },
-      { title: 'Deep archive preview', description: 'Browse nested folders, preview embedded files, and download originals.', icon: featureIcons.archive },
+      { title: 'Deep archive preview', description: 'Standard mode supports 100 MB; ZIP/JAR large-file mode reaches 1 GB and extracts only the selected entry.', icon: featureIcons.archive },
       { title: 'One interaction model', description: 'Every format shares loading, error, cancellation, and lifecycle contracts.', icon: featureIcons.render },
       { title: 'Explicit safety', description: 'Macros, scripts, and active content never run; remote processing is opt-in.', icon: featureIcons.safe },
     ],
@@ -562,7 +715,7 @@ const marketing = computed(() => {
     plans: [
       { title: 'Basic viewer', description: 'For message attachments, approval flows, and simple file detail pages.', cost: '≈ 80 KB', costNote: 'basic browser code, uncompressed', capabilities: ['Text, Markdown, and data files', 'Common images and SVG', 'Browser-native PDF'], pack: 'core + vue + basic', featured: true },
       { title: 'Business documents', description: 'For knowledge bases, collaboration suites, and document centers.', cost: '≈ 1.3 MB', costNote: 'Office renderers load per type', capabilities: ['Everything in Basic', 'DOCX / XLSX / PPTX', 'High-fidelity modern Office preview'], pack: 'basic + modern-office', featured: false },
-      { title: 'File center', description: 'For drives, asset libraries, and products that inspect archives.', cost: '≈ 1.1 MB', costNote: 'RAR / 7Z Worker and WASM', capabilities: ['Basic and Office capabilities', 'ZIP / RAR / 7Z / TAR', 'Preview files nested in archives'], pack: 'basic + office + archive', featured: false },
+      { title: 'File center', description: 'For drives, asset libraries, and products that inspect archives.', cost: '≈ 1.1 MB', costNote: 'RAR / 7Z Worker and WASM', capabilities: ['Basic and Office capabilities', 'ZIP/JAR up to 1 GB', 'Directory browsing and selected-entry extraction'], pack: 'basic + office + archive', featured: false },
       { title: 'Specialist viewer', description: 'For design assets, engineering models, and legacy documents.', cost: 'Compose as needed', costNote: 'legacy DOC / PPT adds optional ≈ 53 MB WASM', capabilities: ['PSD / TIFF advanced images', 'Interactive mainstream 3D models', 'Optional legacy Office conversion'], pack: 'selected packs + optional WASM', featured: false },
     ],
     plansNote: 'Figures are approximate uncompressed measurements from this workspace. Production compression, caching, deduplication, and browser support will affect the final cost.',
@@ -570,7 +723,7 @@ const marketing = computed(() => {
     formatsDescription: 'Support means rendering useful content. Native, experimental, and optional conversion paths are intentionally distinguished.',
     formatFamilies: [
       { mark: 'W', title: 'Office documents', formats: 'DOC / DOCX · XLS / XLSX · PPT / PPTX', note: 'High-fidelity modern preview and optional legacy conversion', color: '#4263eb' },
-      { mark: 'A', title: 'Archives', formats: 'ZIP · RAR · 7Z · TAR · GZIP · JAR', note: 'Trees, nested open, embedded preview, and downloads', color: '#9a55d6' },
+      { mark: 'A', title: 'Archives', formats: 'ZIP · RAR · 7Z · TAR · GZIP · JAR', note: '100 MB standard mode; ZIP/JAR large mode up to 1 GB', color: '#9a55d6' },
       { mark: 'I', title: 'Images and design', formats: 'PNG · JPEG · SVG · TIFF · TGA · PSD', note: 'Zoom, rotate, mirror, and canvas rendering', color: '#d95c7d' },
       { mark: '3D', title: '3D models', formats: 'GLB · glTF · OBJ · STL · FBX · DAE · 3MF', note: 'Orbit controls, animation, wireframe, and reset', color: '#0f9f85' },
       { mark: 'T', title: 'Text and data', formats: 'TXT · MD · CSV · TSV · JSON · XML · Source', note: 'Source and rendered modes with safe sanitization', color: '#e28a32' },
@@ -701,10 +854,13 @@ function loadChineseOfficeFont(): Promise<Array<{ name: string, data: ArrayBuffe
   return chineseOfficeFontPromise
 }
 const fileInputRef = ref<HTMLInputElement>()
+const previewPanelRef = ref<HTMLElement>()
 const query = ref('')
 const detectionMode = ref('auto')
 const inspectorState = ref<InspectorState>()
 const status = ref<ViewerStatus>({ phase: 'idle', message: 'Worker ready' })
+const isPreviewFullscreen = ref(false)
+const openCategory = ref<SampleCategoryId | null>('text-data')
 
 function fileFromBase64(base64: string, name: string, type: string): File {
   const binary = atob(base64)
@@ -728,10 +884,107 @@ function fileFromOpenXml(
 
 function createArchiveSample(): File {
   return fileFromOpenXml({
-    'hello.txt': 'Hello from inside the archive.',
-    'docs/readme.md': '# Archive preview\n\nThis Markdown file is stored inside `docs/`.',
-    'docs/guides/setup.txt': '1. Open the archive.\n2. Enter docs/guides.\n3. Select this file.',
-  }, 'sample.zip', 'application/zip')
+    '项目说明.txt': 'PreviewDock 项目交付资料\n\n此压缩包用于演示目录浏览与按文件解压。',
+    '文档/上线清单.md': '# 上线清单\n\n- 构建前端\n- 配置响应头\n- 验证在线预览',
+    '配置/previewdock.json': JSON.stringify({ preset: 'all-formats', locale: 'zh-CN' }, null, 2),
+  }, '项目资料包.zip', 'application/zip')
+}
+
+function createOdfSample(kind: 'spreadsheet' | 'presentation'): File {
+  const spreadsheetBody = `
+    <table:table table:name="季度数据">
+      <table:table-row>
+        <table:table-cell><text:p>季度</text:p></table:table-cell>
+        <table:table-cell><text:p>收入（万元）</text:p></table:table-cell>
+        <table:table-cell><text:p>增长率</text:p></table:table-cell>
+      </table:table-row>
+      <table:table-row>
+        <table:table-cell><text:p>Q1</text:p></table:table-cell>
+        <table:table-cell><text:p>1280</text:p></table:table-cell>
+        <table:table-cell><text:p>18%</text:p></table:table-cell>
+      </table:table-row>
+      <table:table-row>
+        <table:table-cell><text:p>Q2</text:p></table:table-cell>
+        <table:table-cell><text:p>1540</text:p></table:table-cell>
+        <table:table-cell><text:p>20%</text:p></table:table-cell>
+      </table:table-row>
+    </table:table>`
+  const presentationBody = `
+    <draw:page draw:name="page1">
+      <draw:frame><draw:text-box>
+        <text:h>PreviewDock 产品发布</text:h>
+        <text:p>七类格式，一套统一运行时</text:p>
+      </draw:text-box></draw:frame>
+    </draw:page>`
+  const name = kind === 'spreadsheet' ? '季度经营数据.ods' : '产品发布方案.odp'
+  const mediaType = kind === 'spreadsheet'
+    ? 'application/vnd.oasis.opendocument.spreadsheet'
+    : 'application/vnd.oasis.opendocument.presentation'
+  return fileFromOpenXml({
+    mimetype: mediaType,
+    'content.xml': `<?xml version="1.0" encoding="UTF-8"?>
+      <office:document-content
+        xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+        xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+        xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+        xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0">
+        <office:body>
+          <office:${kind === 'spreadsheet' ? 'spreadsheet' : 'presentation'}>
+            ${kind === 'spreadsheet' ? spreadsheetBody : presentationBody}
+          </office:${kind === 'spreadsheet' ? 'spreadsheet' : 'presentation'}>
+        </office:body>
+      </office:document-content>`,
+  }, name, mediaType)
+}
+
+function createFlatOdfSample(kind: 'document' | 'spreadsheet'): File {
+  const body = kind === 'document'
+    ? '<office:text><text:h>PreviewDock 接入确认单</text:h><text:p>文件在浏览器本地解析，适配器按需加载。</text:p></office:text>'
+    : `<office:spreadsheet><table:table table:name="能力清单">
+        <table:table-row><table:table-cell><text:p>类别</text:p></table:table-cell><table:table-cell><text:p>状态</text:p></table:table-cell></table:table-row>
+        <table:table-row><table:table-cell><text:p>Office</text:p></table:table-cell><table:table-cell><text:p>可预览</text:p></table:table-cell></table:table-row>
+      </table:table></office:spreadsheet>`
+  const extension = kind === 'document' ? 'fodt' : 'fods'
+  return new File([`<?xml version="1.0" encoding="UTF-8"?>
+    <office:document
+      xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+      xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+      xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0">
+      <office:body>${body}</office:body>
+    </office:document>`], `接入确认单.${extension}`, { type: 'application/xml' })
+}
+
+function createThreeMfSample(): File {
+  return fileFromOpenXml({
+    '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>
+      <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+        <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+        <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+      </Types>`,
+    '_rels/.rels': `<?xml version="1.0" encoding="UTF-8"?>
+      <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+      </Relationships>`,
+    '3D/3dmodel.model': `<?xml version="1.0" encoding="UTF-8"?>
+      <model unit="millimeter" xml:lang="zh-CN" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">
+        <metadata name="Title">PreviewDock 产品展台</metadata>
+        <resources>
+          <object id="1" type="model"><mesh>
+            <vertices>
+              <vertex x="0" y="0" z="0"/><vertex x="20" y="0" z="0"/>
+              <vertex x="20" y="20" z="0"/><vertex x="0" y="20" z="0"/>
+              <vertex x="10" y="10" z="25"/>
+            </vertices>
+            <triangles>
+              <triangle v1="0" v2="1" v3="4"/><triangle v1="1" v2="2" v3="4"/>
+              <triangle v1="2" v2="3" v3="4"/><triangle v1="3" v2="0" v3="4"/>
+              <triangle v1="0" v2="3" v3="2"/><triangle v1="0" v2="2" v3="1"/>
+            </triangles>
+          </mesh></object>
+        </resources>
+        <build><item objectid="1"/></build>
+      </model>`,
+  }, '产品展台.3mf', 'model/3mf')
 }
 
 function createDocxSample(): File {
@@ -764,18 +1017,18 @@ function createDocxSample(): File {
     'word/document.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
       <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
         <w:body>
-          <w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>PreviewDock</w:t></w:r></w:p>
-          <w:p><w:r><w:t>High-fidelity DOCX preview rendered entirely in your browser.</w:t></w:r></w:p>
-          <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Features</w:t></w:r></w:p>
-          <w:p><w:r><w:t>Page layout and typography</w:t></w:r></w:p>
-          <w:p><w:r><w:t>Headers, footers, tables and images</w:t></w:r></w:p>
+          <w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>PreviewDock 季度经营报告</w:t></w:r></w:p>
+          <w:p><w:r><w:t>本季度文件预览服务运行稳定，Office、图片、压缩包和 3D 模型均通过浏览器统一打开。</w:t></w:r></w:p>
+          <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>关键进展</w:t></w:r></w:p>
+          <w:p><w:r><w:t>七大类别能力包完成统一接入</w:t></w:r></w:p>
+          <w:p><w:r><w:t>ZIP 与 JAR 支持大文件按条目读取</w:t></w:r></w:p>
           <w:sectPr>
             <w:pgSz w:w="11906" w:h="16838"/>
             <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708"/>
           </w:sectPr>
         </w:body>
       </w:document>`,
-  }, 'sample.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+  }, '季度经营报告.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 }
 
 function createPptxSample(): File {
@@ -817,22 +1070,22 @@ function createPptxSample(): File {
             <p:sp>
               <p:nvSpPr><p:cNvPr id="2" name="Title"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
               <p:spPr><a:xfrm><a:off x="914400" y="1371600"/><a:ext cx="10363200" cy="1219200"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
-              <p:txBody><a:bodyPr anchor="ctr"/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" sz="3000" b="1"><a:solidFill><a:srgbClr val="315EE7"/></a:solidFill><a:latin typeface="Arial"/></a:rPr><a:t>PreviewDock</a:t></a:r><a:endParaRPr lang="en-US" sz="3000"/></a:p></p:txBody>
+              <p:txBody><a:bodyPr anchor="ctr"/><a:lstStyle/><a:p><a:r><a:rPr lang="zh-CN" sz="3000" b="1"><a:solidFill><a:srgbClr val="315EE7"/></a:solidFill><a:latin typeface="Arial"/></a:rPr><a:t>PreviewDock 产品路线图</a:t></a:r><a:endParaRPr lang="zh-CN" sz="3000"/></a:p></p:txBody>
             </p:sp>
             <p:sp>
               <p:nvSpPr><p:cNvPr id="3" name="Subtitle"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
               <p:spPr><a:xfrm><a:off x="1371600" y="3048000"/><a:ext cx="9448800" cy="1066800"/></a:xfrm><a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="E8EEFF"/></a:solidFill><a:ln><a:solidFill><a:srgbClr val="9CB2F8"/></a:solidFill></a:ln></p:spPr>
-              <p:txBody><a:bodyPr anchor="ctr" lIns="228600" rIns="228600"/><a:lstStyle/><a:p><a:pPr algn="ctr"/><a:r><a:rPr lang="en-US" sz="1600"><a:solidFill><a:srgbClr val="253047"/></a:solidFill><a:latin typeface="Arial"/></a:rPr><a:t>High-fidelity PPTX rendering in the browser</a:t></a:r><a:endParaRPr lang="en-US" sz="1600"/></a:p></p:txBody>
+              <p:txBody><a:bodyPr anchor="ctr" lIns="228600" rIns="228600"/><a:lstStyle/><a:p><a:pPr algn="ctr"/><a:r><a:rPr lang="zh-CN" sz="1600"><a:solidFill><a:srgbClr val="253047"/></a:solidFill><a:latin typeface="Arial"/></a:rPr><a:t>统一运行时 · 分类能力包 · 本地优先预览</a:t></a:r><a:endParaRPr lang="zh-CN" sz="1600"/></a:p></p:txBody>
             </p:sp>
           </p:spTree>
         </p:cSld>
         <p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>
       </p:sld>`,
-  }, 'sample.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
+  }, '产品路线图.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
 }
 
 function createPdfSample(): File {
-  const stream = 'BT /F1 24 Tf 72 700 Td (PreviewDock) Tj 0 -38 Td /F1 14 Tf (Browser-native PDF preview) Tj ET\n'
+  const stream = 'BT /F1 24 Tf 72 700 Td (PreviewDock Product Brief) Tj 0 -38 Td /F1 14 Tf (Seven format categories, one browser runtime.) Tj 0 -28 Td (Local-first preview with lazy-loaded adapters.) Tj ET\n'
   const objects = [
     '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
     '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
@@ -850,42 +1103,35 @@ function createPdfSample(): File {
   content += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
   content += offsets.slice(1).map(offset => `${String(offset).padStart(10, '0')} 00000 n \n`).join('')
   content += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`
-  return new File([content], 'sample.pdf', { type: 'application/pdf' })
+  return new File([content], '产品白皮书.pdf', { type: 'application/pdf' })
 }
 
 const xlsxSampleBase64 = 'UEsDBBQAAAAIALNz/1x9j8M5SgAAAE0AAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLMJqSxILVaoyM3JK7ZVyigpKbDS1y9OzkjNTSzWyy9IzQPKpOUX5SaWALlF6foFicnZiemp+kYGBmb6yfl5Jal5JbolIDOU9O0AUEsDBBQAAAAIALNz/1yRt7JrcgAAAKUAAAAUAAAAeGwvc2hhcmVkU3RyaW5ncy54bWxljkEKwkAMRa8iPYApLlxIzEq6FjxBsNEpNDNhkoLHd9SF0C7/e2/x0T12L52zn7sUYScAvydR9n0xyc08SlWONusT3Krw6EkkdIZD3x9BecodoU+EQcO3RQhC+JAfvQXH4mt6vQybcDErNWT8C2j/6A1QSwMEFAAAAAgAs3P/XGDIfyKMAAAAAgEAABgAAAB4bC93b3Jrc2hlZXRzL3NoZWV0MS54bWxdj90KAiEQRl9l8QEaNegiVCh6ETHLaP3BGXZ7/GwJkb2b+c7MYUatub4xeE/TJ84JNQtE5QyALvho8ZCLT408co2WWlufgKV6e9+W4gyS8xNE+0rMqC27WbJG1bxOVTPRUvcrLoJNpBm2fjFcwWIUuD+7jkx0Bs3RRbKL5DAsd6KRHXciGK6D/rb5AlBLAQIUABQAAAAIALNz/1x9j8M5SgAAAE0AAAATAAAAAAAAAAAAAAAAAAAAAABbQ29udGVudF9UeXBlc10ueG1sUEsBAhQAFAAAAAgAs3P/XJG3smtyAAAApQAAABQAAAAAAAAAAAAAAAAAewAAAHhsL3NoYXJlZFN0cmluZ3MueG1sUEsBAhQAFAAAAAgAs3P/XGDIfyKMAAAAAgEAABgAAAAAAAAAAAAAAAAAHwEAAHhsL3dvcmtzaGVldHMvc2hlZXQxLnhtbFBLBQYAAAAAAwADAMkAAADhAQAAAAA='
 
-const readmeText = `# PreviewDock
+const readmeText = `# PreviewDock 产品说明
 
-PreviewDock is a local-first, extensible browser runtime for previewing many file formats.
+PreviewDock 为业务系统提供统一的浏览器文件预览能力。你可以在消息附件、项目资料库、审批详情和资产管理系统中使用同一套预览界面。
 
-> Files stay in the browser unless a host explicitly enables a remote provider.
+> 默认在当前浏览器内处理文件，在线体验不会自动上传用户选择的本地文件。
 
-## Current prototype
+## 七大能力类别
 
-- Framework-agnostic TypeScript core
-- Lazy adapter registry
-- Vue 3 host component
-- Safe text renderer
-- Browser-native image renderer
-- Cancellation and deterministic cleanup
+- Office 与文档
+- 文本与数据
+- 压缩包
+- 图片
+- 音视频
+- 图表与流程
+- 3D 与 CAD
 
-| Adapter | Loading |
+| 使用方式 | 适用场景 |
 | --- | --- |
-| Text | Immediate |
-| Office | On demand |
+| 全格式预设 | 文件中心、网盘、综合资料库 |
+| 分类能力包 | 审批附件、图片库、模型查看等明确场景 |
 
-\`\`\`ts
-const viewer = new ViewerEngine(registry)
-\`\`\`
+## 在线体验
 
-## Architecture
-
-Files are detected before an adapter is imported. Heavy Office, CAD, archive, and media engines will run inside dedicated Web Workers and WebAssembly runtimes.
-
-## Next
-
-The next adapters are PDF, OpenXML Office, archives, media, and common 3D models.
+请从左侧类别中选择示例文件。预览区域支持全屏查看，压缩包支持逐级进入目录并打开内部文件。
 `
 
 const svgSample = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
@@ -896,10 +1142,34 @@ const svgSample = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520"
   <text x="400" y="135" text-anchor="middle" font-family="Arial" font-size="26" fill="#172033">Image adapter</text>
 </svg>`
 
+function generatedSample(
+  id: string,
+  path: string,
+  name: string,
+  shortType: string,
+  kind: string,
+  size: number,
+  customLabel: string,
+  customLabelEn: string,
+  formats?: string[],
+): SampleFile {
+  return {
+    id,
+    name,
+    shortType,
+    kind,
+    size,
+    customLabel,
+    customLabelEn,
+    formats,
+    source: `${generatedSampleBase}${path}`,
+  }
+}
+
 const samples = ref<SampleFile[]>([
   {
     id: 'model-ifc',
-    name: 'Duplex.ifc',
+    name: '双层住宅建筑.ifc',
     labelKey: 'ifcModel',
     shortType: 'IFC',
     kind: 'model',
@@ -908,7 +1178,7 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'model-3dm',
-    name: 'Motore_Radiale_14_Cilindri.3dm',
+    name: '径向发动机.3dm',
     labelKey: 'rhinoModel',
     shortType: '3DM',
     kind: 'model',
@@ -917,7 +1187,7 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'cad-dxf',
-    name: 'all.dxf',
+    name: '设备平面图.dxf',
     labelKey: 'dxfDrawing',
     shortType: 'DXF',
     kind: 'model',
@@ -932,19 +1202,21 @@ const samples = ref<SampleFile[]>([
     kind: 'model',
     source: `${assetBase}samples/models/游戏手柄.STEP`,
     size: 375035,
+    formats: ['STEP', 'STP'],
   },
   {
     id: 'cad-iges',
-    name: 'ceshi001.iges',
+    name: '机械零件.iges',
     labelKey: 'igesModel',
     shortType: 'IGES',
     kind: 'model',
     source: `${assetBase}samples/models/ceshi001.iges`,
     size: 229554,
+    formats: ['IGES', 'IGS'],
   },
   {
     id: 'model-off',
-    name: 'sample.off',
+    name: '几何体网格.off',
     labelKey: 'offModel',
     shortType: 'OFF',
     kind: 'model',
@@ -953,43 +1225,46 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'wps-document',
-    name: '基层党建指挥平台项目需求书.wps',
+    name: '项目需求说明书.wps',
     labelKey: 'wpsDocument',
     shortType: 'WPS',
     kind: 'document',
     source: `${assetBase}samples/office/基层党建指挥平台项目需求书.wps`,
     size: 13312,
+    formats: ['WPS', 'WPT'],
   },
   {
     id: 'wps-spreadsheet',
-    name: '工作簿1.et',
+    name: '年度销售数据.et',
     labelKey: 'wpsSpreadsheet',
     shortType: 'ET',
     kind: 'table',
     source: `${assetBase}samples/office/工作簿1.et`,
     size: 20992,
+    formats: ['ET', 'ETT'],
   },
   {
     id: 'wps-presentation',
-    name: 'WPS演示文稿.dps',
+    name: '产品演示样例.dps',
     labelKey: 'wpsPresentation',
     shortType: 'DPS',
     kind: 'presentation',
-    source: `${assetBase}samples/office/WPS演示文稿.dps`,
-    size: 20992,
+    source: `${generatedSampleBase}office/product-presentation.dps`,
+    size: 125440,
   },
   {
     id: 'windows-metafile',
-    name: 'image54.wmf',
+    name: '系统架构图.wmf',
     labelKey: 'windowsMetafile',
     shortType: 'WMF',
     kind: 'image',
     source: `${assetBase}samples/images/image54.wmf`,
     size: 2012,
+    formats: ['WMF', 'EMF'],
   },
   {
     id: 'bpmn-approval-flow',
-    name: 'approval_of_bookmarks.bpmn',
+    name: '采购审批流程.bpmn',
     labelKey: 'bpmnWorkflow',
     shortType: 'BPMN',
     kind: 'diagram',
@@ -998,7 +1273,7 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'xmind-architecture-study',
-    name: '系统架构师备考.xmind',
+    name: '系统架构规划.xmind',
     labelKey: 'xmindMap',
     shortType: 'XMIND',
     kind: 'diagram',
@@ -1007,16 +1282,17 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'visio-tpch-module',
-    name: 'TPCH模块.vsdx',
+    name: '酒店预订办理流程.vsdx',
     labelKey: 'visioDiagram',
     shortType: 'VSDX',
     kind: 'diagram',
-    source: `${assetBase}samples/structured/TPCH模块.vsdx`,
-    size: 41335,
+    source: `${generatedSampleBase}diagrams/process-overview.vsdx`,
+    size: 34167,
+    formats: ['VSDX', 'VSD'],
   },
   {
     id: 'ofd-document',
-    name: 'fileTest.ofd',
+    name: '电子票据示例.ofd',
     labelKey: 'ofdDocument',
     shortType: 'OFD',
     kind: 'document',
@@ -1025,16 +1301,17 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'odt-document',
-    name: 'bh_fiche_adhesion.odt',
+    name: '会员申请表.odt',
     labelKey: 'odfDocument',
     shortType: 'ODT',
     kind: 'document',
     source: `${assetBase}samples/structured/bh_fiche_adhesion.odt`,
     size: 172220,
+    formats: ['ODT', 'OTT'],
   },
   {
     id: 'epub-book',
-    name: 'The Moon and Sixpence.epub',
+    name: '经典读物节选.epub',
     labelKey: 'epubBook',
     shortType: 'EPUB',
     kind: 'document',
@@ -1043,7 +1320,7 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'email-message',
-    name: 'sample.eml',
+    name: '项目周报.eml',
     labelKey: 'emailMessage',
     shortType: 'EML',
     kind: 'document',
@@ -1052,7 +1329,7 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'rtf-document',
-    name: 'sample.rtf',
+    name: '会议纪要.rtf',
     labelKey: 'rtfDocument',
     shortType: 'RTF',
     kind: 'document',
@@ -1061,17 +1338,20 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'legacy-doc-chinese-regression',
-    name: '案例专辑+历年真题 勘误.doc',
-    customLabel: '旧版 Word · 中文验证',
+    name: '案例资料勘误.doc',
+    customLabel: '旧版 Word 中文文档',
+    customLabelEn: 'Legacy Word document',
     shortType: 'DOC',
     kind: 'document',
     source: `${assetBase}samples/案例专辑+历年真题 勘误.doc`,
     size: 1043456,
+    formats: ['DOC', 'DOT'],
   },
   {
     id: 'archive-rar',
-    name: 'sample.rar',
-    customLabel: 'RAR 压缩包',
+    name: '项目交付包.rar',
+    customLabel: 'RAR 项目归档',
+    customLabelEn: 'RAR project archive',
     shortType: 'RAR',
     kind: 'archive',
     source: `${assetBase}samples/archives/sample.rar`,
@@ -1079,8 +1359,9 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'archive-7z',
-    name: 'sample.7z',
-    customLabel: '7Z 压缩包',
+    name: '配置备份.7z',
+    customLabel: '7Z 配置备份',
+    customLabelEn: '7Z configuration backup',
     shortType: '7Z',
     kind: 'archive',
     source: `${assetBase}samples/archives/sample.7z`,
@@ -1088,8 +1369,9 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'archive-tar',
-    name: 'sample.tar',
-    customLabel: 'TAR 压缩包',
+    name: '服务器日志.tar',
+    customLabel: 'TAR 日志归档',
+    customLabelEn: 'TAR log archive',
     shortType: 'TAR',
     kind: 'archive',
     source: `${assetBase}samples/archives/sample.tar`,
@@ -1097,25 +1379,29 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'archive-gzip',
-    name: 'sample.gzip',
-    customLabel: 'GZIP 压缩包',
+    name: '运行日志.gzip',
+    customLabel: 'GZIP 单文件压缩',
+    customLabelEn: 'GZIP compressed log',
     shortType: 'GZ',
     kind: 'archive',
     source: `${assetBase}samples/archives/sample.gzip`,
     size: 145,
+    formats: ['GZ', 'GZIP'],
   },
   {
     id: 'archive-jar',
-    name: 'sample.jar',
-    customLabel: 'JAR 压缩包',
+    name: '应用资源包.jar',
+    customLabel: 'JAR 应用资源',
+    customLabelEn: 'JAR application resources',
     shortType: 'JAR',
     kind: 'archive',
     source: `${assetBase}samples/archives/sample.jar`,
     size: 735,
   },
+  generatedSample('archive-tgz', 'archives/project-logs.tgz', '项目日志归档.tgz', 'TGZ', 'archive', 800, 'TGZ 多文件压缩包', 'TGZ multi-file archive'),
   {
     id: 'readme',
-    name: 'README.md',
+    name: '产品说明.md',
     labelKey: 'markdown',
     shortType: 'MD',
     kind: 'text',
@@ -1123,31 +1409,39 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'notes',
-    name: 'notes.txt',
+    name: '接入说明.txt',
     labelKey: 'plainText',
     shortType: 'TXT',
     kind: 'text',
-    source: new File(['Preview adapters are loaded only when a matching file is opened.'], 'notes.txt', { type: 'text/plain' }),
+    source: new File(['PreviewDock 接入说明\n\n1. 选择全格式预设或按业务模块引入。\n2. 传入 File、Blob 或可访问的 URL。\n3. 适配器只在命中格式时加载。'], '接入说明.txt', { type: 'text/plain' }),
+    formats: ['TXT', 'LOG'],
   },
   {
     id: 'data',
-    name: 'data.csv',
+    name: '格式支持矩阵.csv',
     labelKey: 'csv',
     shortType: 'CSV',
     kind: 'table',
-    source: new File(['format,status\\nPDF,planned\\nDOCX,planned\\nDWG,research'], 'data.csv', { type: 'text/csv' }),
+    source: new File(['类别,格式,状态\nOffice,DOCX,可预览\n图片,TIFF,可预览\n压缩包,ZIP,按文件解压\n3D 与 CAD,GLB,可交互'], '格式支持矩阵.csv', { type: 'text/csv' }),
+    formats: ['CSV', 'TSV'],
   },
   {
     id: 'config',
-    name: 'viewer.json',
+    name: '运行时配置.json',
     labelKey: 'json',
     shortType: 'JSON',
     kind: 'code',
-    source: new File([JSON.stringify({ runtime: 'browser', lazy: true, workers: true }, null, 2)], 'viewer.json', { type: 'application/json' }),
+    source: new File([JSON.stringify({
+      runtime: 'browser',
+      preset: 'all-formats',
+      lazyAdapters: true,
+      workerIsolation: true,
+      archiveLargeFileMode: 'range',
+    }, null, 2)], '运行时配置.json', { type: 'application/json' }),
   },
   {
     id: 'image',
-    name: 'sample.svg',
+    name: '产品架构图.svg',
     labelKey: 'svgImage',
     shortType: 'SVG',
     kind: 'image',
@@ -1155,7 +1449,7 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'pdf',
-    name: 'sample.pdf',
+    name: '产品白皮书.pdf',
     labelKey: 'pdfDocument',
     shortType: 'PDF',
     kind: 'document',
@@ -1163,46 +1457,265 @@ const samples = ref<SampleFile[]>([
   },
   {
     id: 'archive',
-    name: 'sample.zip',
+    name: '项目资料包.zip',
     labelKey: 'zipArchive',
     shortType: 'ZIP',
     kind: 'archive',
     source: createArchiveSample(),
   },
   {
+    id: 'archive-large-demo',
+    name: '大型项目资料库.zip',
+    customLabel: '110 MB 大文件模式 · 110 个文件按需读取',
+    customLabelEn: '110 MB large-file mode · 110 files read on demand',
+    shortType: 'ZIP',
+    kind: 'archive',
+    source: createVirtualLargeZip(),
+    formats: ['ZIP', 'HTTP Range'],
+  },
+  {
     id: 'docx',
-    name: 'sample.docx',
+    name: '季度经营报告.docx',
     labelKey: 'wordDocument',
     shortType: 'DOCX',
     kind: 'document',
     source: createDocxSample(),
+    formats: ['DOCX', 'DOCM', 'DOTX', 'DOTM'],
   },
   {
     id: 'xlsx',
-    name: 'sample.xlsx',
+    name: '销售预测.xlsx',
     labelKey: 'spreadsheet',
     shortType: 'XLSX',
     kind: 'table',
     source: fileFromBase64(xlsxSampleBase64, 'sample.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+    formats: ['XLSX', 'XLSM', 'XLTX', 'XLTM', 'XLAM'],
   },
   {
     id: 'pptx',
-    name: 'sample.pptx',
+    name: '产品路线图.pptx',
     labelKey: 'presentation',
     shortType: 'PPTX',
     kind: 'presentation',
     source: createPptxSample(),
+    formats: ['PPTX', 'PPTM', 'POTX', 'POTM', 'PPSX', 'PPSM'],
   },
+  {
+    id: 'legacy-spreadsheet',
+    name: '历史销售台账.xls',
+    customLabel: '旧版 Excel 工作簿',
+    customLabelEn: 'Legacy Excel workbook',
+    shortType: 'XLS',
+    kind: 'table',
+    source: `${assetBase}samples/office/工作簿1.et`,
+    size: 20992,
+    formats: ['XLS', 'XLT', 'XLA'],
+  },
+  {
+    id: 'legacy-presentation',
+    name: '产品演示样例.ppt',
+    customLabel: '旧版 PowerPoint 演示',
+    customLabelEn: 'Legacy PowerPoint deck',
+    shortType: 'PPT',
+    kind: 'presentation',
+    source: `${generatedSampleBase}office/product-presentation.ppt`,
+    size: 125440,
+  },
+  {
+    id: 'odf-spreadsheet',
+    name: '季度经营数据.ods',
+    customLabel: 'OpenDocument 表格',
+    customLabelEn: 'OpenDocument spreadsheet',
+    shortType: 'ODS',
+    kind: 'table',
+    source: createOdfSample('spreadsheet'),
+    formats: ['ODS', 'OTS'],
+  },
+  {
+    id: 'odf-presentation',
+    name: '产品发布方案.odp',
+    customLabel: 'OpenDocument 演示文稿',
+    customLabelEn: 'OpenDocument presentation',
+    shortType: 'ODP',
+    kind: 'presentation',
+    source: createOdfSample('presentation'),
+    formats: ['ODP', 'OTP'],
+  },
+  {
+    id: 'flat-odf-document',
+    name: '接入确认单.fodt',
+    customLabel: 'Flat OpenDocument 文档',
+    customLabelEn: 'Flat OpenDocument text',
+    shortType: 'FODT',
+    kind: 'document',
+    source: createFlatOdfSample('document'),
+  },
+  {
+    id: 'flat-odf-spreadsheet',
+    name: '能力清单.fods',
+    customLabel: 'Flat OpenDocument 表格',
+    customLabelEn: 'Flat OpenDocument spreadsheet',
+    shortType: 'FODS',
+    kind: 'table',
+    source: createFlatOdfSample('spreadsheet'),
+  },
+  {
+    id: 'text-xml',
+    name: '订单数据.xml',
+    customLabel: '结构化 XML 数据',
+    customLabelEn: 'Structured XML data',
+    shortType: 'XML',
+    kind: 'code',
+    source: new File([
+      '<?xml version="1.0" encoding="UTF-8"?>\n<orders><order id="PD-2026-0803"><customer>示例客户</customer><amount currency="CNY">12800</amount><status>confirmed</status></order></orders>',
+    ], '订单数据.xml', { type: 'application/xml' }),
+  },
+  {
+    id: 'text-typescript',
+    name: 'preview-config.ts',
+    customLabel: 'TypeScript 接入配置',
+    customLabelEn: 'TypeScript integration config',
+    shortType: 'TS',
+    kind: 'code',
+    source: new File([
+      "import { createAllFormatEngine } from '@previewdock/preset-all'\n\nexport const previewEngine = createAllFormatEngine()\n",
+    ], 'preview-config.ts', { type: 'text/typescript' }),
+    formats: ['JS', 'TS'],
+  },
+  {
+    id: 'text-web',
+    name: 'preview-shell.html',
+    customLabel: 'Web 页面示例',
+    customLabelEn: 'Web page sample',
+    shortType: 'HTML',
+    kind: 'code',
+    source: new File([
+      '<!doctype html>\\n<html lang="zh-CN"><head><title>PreviewDock</title><style>.viewer{min-height:480px}</style></head><body><main class="viewer">文件预览区域</main></body></html>',
+    ], 'preview-shell.html', { type: 'text/html' }),
+    formats: ['HTML', 'CSS'],
+  },
+  {
+    id: 'text-backend',
+    name: 'preview-audit.sql',
+    customLabel: '预览审计查询',
+    customLabelEn: 'Preview audit query',
+    shortType: 'SQL',
+    kind: 'code',
+    source: new File([
+      "SELECT format, COUNT(*) AS preview_count\\nFROM preview_events\\nWHERE created_at >= CURRENT_DATE - INTERVAL '7 days'\\nGROUP BY format\\nORDER BY preview_count DESC;",
+    ], 'preview-audit.sql', { type: 'text/plain' }),
+    formats: ['JAVA', 'PHP', 'PY', 'SQL', 'SH'],
+  },
+  generatedSample('image-png', 'images/product-dashboard.png', 'NASA 蓝色弹珠地球.png', 'PNG', 'image', 1298920, 'PNG NASA 地球影像', 'PNG NASA Earth image'),
+  generatedSample('image-jpeg', 'images/product-dashboard.jpg', 'NASA 蓝色弹珠地球.jpg', 'JPG', 'image', 317871, 'JPEG NASA 地球影像', 'JPEG NASA Earth image', ['JPG', 'JPEG', 'JFIF']),
+  generatedSample('image-gif', 'images/product-dashboard.gif', 'NASA 地球缩放动效.gif', 'GIF', 'image', 1324489, 'GIF NASA 地球动效', 'GIF NASA Earth animation'),
+  generatedSample('image-webp', 'images/product-dashboard.webp', 'NASA 蓝色弹珠地球.webp', 'WEBP', 'image', 167028, 'WebP NASA 地球影像', 'WebP NASA Earth image'),
+  generatedSample('image-bmp', 'images/product-dashboard.bmp', 'NASA 蓝色弹珠地球.bmp', 'BMP', 'image', 2764854, 'BMP NASA 地球影像', 'BMP NASA Earth image'),
+  generatedSample('image-ico', 'images/product-dashboard.ico', 'NASA 地球图标.ico', 'ICO', 'image', 205086, 'ICO NASA 地球图标', 'ICO NASA Earth icon'),
+  generatedSample('image-tiff', 'images/product-dashboard.tiff', 'NASA 蓝色弹珠地球.tiff', 'TIFF', 'image', 1521053, 'TIFF NASA 地球影像', 'TIFF NASA Earth image', ['TIF', 'TIFF']),
+  generatedSample('image-tga', 'images/product-dashboard.tga', 'NASA 蓝色弹珠地球.tga', 'TGA', 'image', 1697678, 'TGA NASA 地球影像', 'TGA NASA Earth image'),
+  generatedSample('image-psd', 'images/product-dashboard.psd', 'NASA 蓝色弹珠地球.psd', 'PSD', 'image', 3434034, 'PSD NASA 地球影像', 'PSD NASA Earth image'),
+  generatedSample('media-mp3', 'media/preview-tone.mp3', '霸王龙吼声音效.mp3', 'MP3', 'media', 39868, 'MP3 霸王龙吼声', 'MP3 T-Rex roar'),
+  generatedSample('media-wav', 'media/preview-tone.wav', '霸王龙吼声音效.wav', 'WAV', 'media', 365970, 'WAV 霸王龙吼声', 'WAV T-Rex roar'),
+  generatedSample('media-ogg', 'media/preview-tone.ogg', '霸王龙吼声音效.ogg', 'OGG', 'media', 35634, 'Ogg 霸王龙吼声', 'Ogg T-Rex roar', ['OGG', 'OGA']),
+  generatedSample('media-m4a', 'media/preview-tone.m4a', '霸王龙吼声音效.m4a', 'M4A', 'media', 34401, 'M4A / AAC 霸王龙吼声', 'M4A / AAC T-Rex roar', ['M4A', 'AAC']),
+  generatedSample('media-flac', 'media/preview-tone.flac', '霸王龙吼声音效.flac', 'FLAC', 'media', 263052, 'FLAC 霸王龙吼声', 'FLAC T-Rex roar'),
+  generatedSample('media-opus', 'media/preview-tone.opus', '霸王龙吼声音效.opus', 'OPUS', 'media', 26680, 'Opus 霸王龙吼声', 'Opus T-Rex roar'),
+  generatedSample('media-mp4', 'media/product-tour.mp4', '花朵延时摄影.mp4', 'MP4', 'media', 1128375, 'MP4 花朵延时视频', 'MP4 flower time-lapse', ['MP4', 'M4V', 'MOV']),
+  generatedSample('media-webm', 'media/product-tour.webm', '花朵延时摄影.webm', 'WEBM', 'media', 554058, 'WebM 花朵延时视频', 'WebM flower time-lapse', ['WEBM', 'OGV']),
+  generatedSample('model-glb', 'models/product-demo.glb', '飞行动效模型.glb', 'GLB', 'model', 77428, 'GLB 动画模型', 'GLB animated model'),
+  generatedSample('model-gltf', 'models/product-scene.gltf', '产品展台.gltf', 'GLTF', 'model', 1399, 'glTF 场景模型', 'glTF scene model'),
+  generatedSample('model-obj', 'models/product-scene.obj', '产品展台.obj', 'OBJ', 'model', 238, 'OBJ 网格模型', 'OBJ mesh model'),
+  generatedSample('model-stl', 'models/product-scene.stl', '打印件.stl', 'STL', 'model', 531, 'STL 3D 打印模型', 'STL print model'),
+  generatedSample('model-ply', 'models/product-scene.ply', '扫描网格.ply', 'PLY', 'model', 266, 'PLY 扫描网格', 'PLY scan mesh'),
+  generatedSample('model-fbx', 'models/product-demo.fbx', '角色动画.fbx', 'FBX', 'model', 3681360, 'FBX 动画模型', 'FBX animated model'),
+  generatedSample('model-dae', 'models/product-scene.dae', '产品展台.dae', 'DAE', 'model', 2086, 'Collada 场景', 'Collada scene'),
+  generatedSample('model-3ds', 'models/product-demo.3ds', '工业设备.3ds', '3DS', 'model', 119053, '3DS 工业模型', '3DS industrial model'),
+  {
+    id: 'model-3mf',
+    name: '产品展台.3mf',
+    customLabel: '3MF 制造模型',
+    customLabelEn: '3MF manufacturing model',
+    shortType: '3MF',
+    kind: 'model',
+    source: createThreeMfSample(),
+  },
+  generatedSample('model-wrl', 'models/product-scene.wrl', '虚拟展台.wrl', 'WRL', 'model', 523, 'VRML 虚拟场景', 'VRML virtual scene'),
+  generatedSample('model-brep', 'models/product-cylinder.brep', '精密实体.brep', 'BREP', 'model', 48711, 'Open CASCADE BREP 模型', 'Open CASCADE BREP model'),
 ])
 
 const activeFile = ref(
   samples.value.find(sample => sample.id === 'readme') || samples.value[0] as SampleFile,
 )
-const filteredSamples = computed(() => {
-  const keyword = query.value.toLowerCase()
-  return keyword
-    ? samples.value.filter(item => item.name.toLowerCase().includes(keyword))
-    : samples.value
+
+function sampleCategory(sample: SampleFile): SampleCategoryId | undefined {
+  if (sample.kind === 'local') return undefined
+  if (sample.kind === 'archive') return 'archives'
+  if (sample.kind === 'media') return 'media'
+  if (sample.kind === 'model') return '3d-cad'
+  if (sample.kind === 'diagram' || sample.id === 'windows-metafile') return 'diagrams'
+  if (sample.kind === 'image') return 'images'
+  if (sample.kind === 'document' || sample.kind === 'presentation') return 'documents'
+  if (sample.kind === 'table' && sample.id !== 'data') return 'documents'
+  return 'text-data'
+}
+
+function matchesQuery(sample: SampleFile): boolean {
+  const keyword = query.value.trim().toLocaleLowerCase()
+  if (!keyword) return true
+  const haystack = [
+    sample.name,
+    sample.shortType,
+    sampleLabel(sample),
+    ...(sample.formats || []),
+  ].join(' ').toLocaleLowerCase()
+  return haystack.includes(keyword)
+}
+
+const officialSampleCount = computed(() => samples.value.filter(sample => sample.kind !== 'local').length)
+const localSamples = computed(() => samples.value.filter(sample => sample.kind === 'local' && matchesQuery(sample)))
+const sampleGroups = computed(() => sampleCategories
+  .map(category => ({
+    ...category,
+    title: t(category.titleKey),
+    items: samples.value.filter(sample => sampleCategory(sample) === category.id && matchesQuery(sample)),
+  }))
+  .filter(group => !query.value || group.items.length))
+const visibleSampleCount = computed(() => (
+  localSamples.value.length + sampleGroups.value.reduce((total, group) => total + group.items.length, 0)
+))
+
+function isCategoryOpen(category: SampleCategoryId): boolean {
+  return Boolean(query.value) || openCategory.value === category
+}
+
+function toggleCategory(category: SampleCategoryId): void {
+  openCategory.value = openCategory.value === category ? null : category
+}
+
+function setPreviewFullscreen(next: boolean): void {
+  isPreviewFullscreen.value = next
+  document.documentElement.classList.toggle('previewdock-preview-open', next)
+}
+
+function togglePreviewFullscreen(): void {
+  if (!previewPanelRef.value) return
+  setPreviewFullscreen(!isPreviewFullscreen.value)
+}
+
+function handleFullscreenKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && isPreviewFullscreen.value) {
+    setPreviewFullscreen(false)
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleFullscreenKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleFullscreenKeydown)
+  document.documentElement.classList.remove('previewdock-preview-open')
 })
 
 const detectedFormat = computed(() => {
@@ -1238,6 +1751,8 @@ watch(locale, nextLocale => {
 function selectSample(sample: SampleFile): void {
   inspectorState.value = undefined
   activeFile.value = sample
+  const category = sampleCategory(sample)
+  if (category) openCategory.value = category
 }
 
 function handleFileInput(event: Event): void {
@@ -1312,6 +1827,8 @@ function formatCapability(capability: PreviewCapability): string {
 }
 
 function sampleLabel(sample: SampleFile): string {
-  return sample.labelKey ? t(sample.labelKey) : sample.customLabel || t('localFile')
+  if (sample.labelKey) return t(sample.labelKey)
+  if (locale.value === 'en' && sample.customLabelEn) return sample.customLabelEn
+  return sample.customLabel || t('localFile')
 }
 </script>

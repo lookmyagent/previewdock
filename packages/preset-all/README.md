@@ -1,6 +1,6 @@
 # @previewdock/preset-all
 
-Official all-format preset for PreviewDock. It registers every maintained adapter while keeping parser implementations behind dynamic imports.
+Official all-format preset for PreviewDock. It combines all seven product categories—Documents, Text & Data, Archives, Images, Media, Diagrams, and 3D & CAD—while keeping parser implementations behind dynamic imports.
 
 ```bash
 pnpm add vue @previewdock/vue @previewdock/preset-all

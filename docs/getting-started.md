@@ -12,7 +12,7 @@ pnpm add vue @previewdock/vue @previewdock/preset-all
 
 ## 创建 Engine
 
-预设只注册轻量 Manifest，解析器仍在匹配到文件后动态加载。
+All 模式一次提供七类文件能力，页面只需维护一个 Engine。
 
 ```ts
 import { createAllFormatEngine } from '@previewdock/preset-all'
@@ -41,5 +41,8 @@ const file = ref<File>()
 ## 下一步
 
 - 配置 RAR / 7Z、CAD 和旧版 DOC / PPT：阅读 [Worker 与 WASM 部署](/deployment)。
+- 了解七个业务能力边界：阅读[七大格式分类](/categories)。
 - 只安装部分格式：阅读[模块化接入](/modular-integration)。
 - 查看所有格式的实际状态：阅读[格式支持矩阵](/format-support)。
+
+宿主系统负责文件选择、登录鉴权、存储地址和访问权限；PreviewDock 负责把允许访问的文件呈现在统一预览界面中。

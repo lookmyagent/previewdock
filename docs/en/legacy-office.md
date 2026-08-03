@@ -1,43 +1,37 @@
-# Legacy Office browser integration
+# Legacy Office usage
 
-The legacy Office adapter has two routes: binary Excel is parsed in the browser, while DOC/PPT use an optional LibreOffice WebAssembly converter.
+PreviewDock places legacy Word, Excel, and PowerPoint files in the Office & Documents category. Integrators still use the same preview component, while selected legacy formats need an additional runtime capability.
 
-## XLS, XLT, and XLA
+## Coverage
 
-SheetJS parses binary Excel workbooks and the read-only workbook UI renders them. SheetJS loads only after a matching file is opened.
+| File type | Representative extensions | Product behavior |
+| --- | --- | --- |
+| Legacy Word | DOC, DOT, WPS, WPT | Convert to browser-friendly read-only content |
+| Legacy Excel | XLS, XLT, XLA, ET, ETT | Present a read-only workbook view |
+| Legacy PowerPoint | PPT, DPS | Convert to browser-friendly read-only content |
+| Legacy drawings | VSD, WMF, EMF | Display through an optional conversion capability |
 
-Each preview is limited to 30 MB input, 20 worksheets, 500 rows per worksheet, and 100 columns per worksheet. These limits protect the UI from malicious or accidentally enormous ranges. Macros are never executed.
+Legacy formats have many historical variants. Validate production support with real customer files. Preview targets readable content rather than pixel-perfect desktop Office reproduction.
 
-## DOC and PPT
+## Integration
 
-DOC and PPT need a full document layout engine. The optional `converter-zetaoffice` package uses LibreOffice WebAssembly and is dynamically imported only after a DOC/PPT file is opened:
+Both All mode and category mode accept a host-provided conversion capability:
 
 ```ts
-const adapter = createLegacyOfficeAdapter({
-  converter: {
-    id: 'zetaoffice-wasm',
-    async convert(request) {
-      const { createZetaOfficeConverter } = await import('@previewdock/converter-zetaoffice')
-      return createZetaOfficeConverter({
-        wasmPackage: 'https://static.example.com/zetaoffice/',
-        zetaJsUrl,
-      }).convert(request)
-    },
-  },
+const documents = createDocumentsPack({
+  legacyOffice: { converter },
 })
 ```
 
-After conversion, the adapter creates a local object URL and displays the PDF in the existing PDF surface. The original file and generated PDF stay in the browser by default.
+The host chooses a conversion service or local runtime and decides whether files may leave the browser. When a required capability is not configured, the component provides a clear unsupported or configuration message.
 
-## Deployment requirements
+## Production checklist
 
-Production systems should self-host and version `soffice.js`, `soffice.wasm`, `soffice.data`, and `soffice.data.js.metadata`, rather than relying permanently on a demo CDN.
+- Serve the page and runtime assets over HTTPS with correct cross-origin headers.
+- Limit input size, processing time, concurrency, and memory.
+- Show progress and let users cancel long-running work.
+- Disable macros, external-link updates, and network-enabled document loading.
+- Tell users whether processing is local or server-side.
+- Review commercial licenses for the selected conversion capability and fonts.
 
-The page must be cross-origin isolated:
-
-```http
-Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Embedder-Policy: require-corp
-```
-
-When assets are hosted on another origin, provide compatible CORS and `Cross-Origin-Resource-Policy` headers. Test iframe, SSO, payment, and third-party integrations under COOP/COEP; show conversion progress; enforce memory and input limits; disable macros and network-enabled document loading; and review the relevant licenses.
+Large browser-side conversions may require cross-origin isolation headers. See [Runtime and deployment](/en/deployment).

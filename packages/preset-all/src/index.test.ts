@@ -2,15 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { createAllFormatEngine, createAllFormatPack } from './index'
 
 const expectedAdapterIds = [
-  'text',
-  'image',
   'pdf',
-  'media',
-  'advanced-image',
-  'archive',
   'openxml',
   'legacy-office',
-  'structured',
+  'structured-documents',
+  'text',
+  'archive',
+  'image',
+  'advanced-image',
+  'media',
+  'structured-diagrams',
+  'legacy-diagrams',
   'model-3d',
 ]
 

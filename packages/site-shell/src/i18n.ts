@@ -63,3 +63,13 @@ export function getLocalizedPath(path: string, locale: SiteLocale): string {
   }
   return path
 }
+
+export function getLocalizedDocsPath(pathname: string, locale: SiteLocale): string {
+  const docsPath = pathname
+    .replace(/^\/docs\/?/, '')
+    .replace(/^en\/?/, '')
+    .replace(/^\/+|\/+$/g, '')
+
+  if (!docsPath) return locale === 'en' ? '/docs/en/' : '/docs/'
+  return locale === 'en' ? `/docs/en/${docsPath}` : `/docs/${docsPath}`
+}

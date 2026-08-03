@@ -1,0 +1,11 @@
+{
+  "name": "@previewdock/preset-3d-cad",
+  "version": "0.1.0",
+  "description": "Official 3D model and engineering CAD preset for PreviewDock",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/preset-3d-cad" },
+  "type": "module", "sideEffects": false, "files": ["dist"], "publishConfig": { "access": "public" },
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "scripts": { "build": "tsup src/index.ts --format esm --dts --clean --splitting", "typecheck": "tsc --noEmit -p tsconfig.json" },
+  "dependencies": { "@previewdock/adapter-3d": "workspace:*", "@previewdock/core": "workspace:*" }
+}

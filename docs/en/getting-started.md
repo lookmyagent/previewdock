@@ -10,7 +10,7 @@ pnpm add vue @previewdock/vue @previewdock/preset-all
 
 ## Create an engine
 
-The preset registers lightweight manifests while parsers stay lazy:
+All mode provides all seven file categories through one engine:
 
 ```ts
 import { createAllFormatEngine } from '@previewdock/preset-all'
@@ -24,6 +24,8 @@ Pass the engine to the Vue component:
 <PreviewDock :engine="engine" :source="file" :file-name="file.name" locale="en" />
 ```
 
-The host owns file selection, authentication, storage, and any remote conversion policy.
+The host owns file selection, authentication, storage URLs, and access policy. PreviewDock presents files that the host has already authorized.
 
 RAR/7Z, engineering CAD, and legacy DOC/PPT need additional runtime assets. See [Worker and WASM deployment](/en/deployment). Use [modular integration](/en/modular-integration) when only selected formats should be installed.
+
+See [seven format categories](/en/categories) for the product capability boundaries.

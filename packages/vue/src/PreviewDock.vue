@@ -136,6 +136,7 @@ watch(
     () => props.source,
     () => props.fileName,
     () => props.mimeType,
+    () => props.locale,
   ],
   ([source]) => {
     if (source !== null && source !== undefined) {

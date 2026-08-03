@@ -1,74 +1,37 @@
-# 旧版 Office 浏览器接入
+# 旧版 Office 使用说明
 
-旧版 Office 适配器提供两条处理路径：旧版 Excel 在浏览器内读取，DOC/PPT 通过可选的 LibreOffice WebAssembly 转换。
+PreviewDock 将旧版 Word、Excel 和 PowerPoint 文件归入“Office 与文档”分类。接入方仍然使用统一预览组件，但需要为部分旧格式准备额外运行能力。
 
-## XLS、XLT 和 XLA
+## 覆盖范围
 
-二进制 Excel 工作簿由 SheetJS 直接解析，并使用与其他表格适配器相同的受限只读工作簿界面渲染。只有打开匹配文件时才会导入 SheetJS。
+| 文件类型 | 代表扩展名 | 产品行为 |
+| --- | --- | --- |
+| 旧版 Word | DOC、DOT、WPS、WPT | 转换为适合浏览器只读预览的内容 |
+| 旧版 Excel | XLS、XLT、XLA、ET、ETT | 以只读工作簿方式展示 |
+| 旧版 PowerPoint | PPT、DPS | 转换为适合浏览器只读预览的内容 |
+| 旧版图形 | VSD、WMF、EMF | 使用可选转换能力展示 |
 
-浏览器对每次预览限制为：
+旧格式存在较多历史版本和文件变体，上线前必须使用实际客户文件验收。预览效果以内容可读为目标，不承诺与桌面 Office 像素级一致。
 
-- 输入文件不超过 30 MB；
-- 不超过 20 个工作表；
-- 每个工作表最多读取 500 行；
-- 每个工作表最多读取 100 列。
+## 接入方式
 
-这些限制用于保护界面，避免恶意文件或意外的超大范围占用资源。不会执行宏。
-
-## DOC 和 PPT
-
-DOC 和 PPT 需要完整的文档布局引擎才能获得有用的还原度。可选的 `converter-zetaoffice` 包使用 LibreOffice WebAssembly，并且只在打开 DOC/PPT 后动态加载：
+All 模式和分类模式都可以配置宿主提供的转换能力：
 
 ```ts
-import { createLegacyOfficeAdapter } from '@previewdock/adapter-legacy-office'
-
-const adapter = createLegacyOfficeAdapter({
-  converter: {
-    id: 'zetaoffice-wasm',
-    async convert(request) {
-      const { createZetaOfficeConverter } = await import('@previewdock/converter-zetaoffice')
-      const { default: zetaJsUrl } = await import('zetajs/zeta.js?url')
-      return createZetaOfficeConverter({
-        wasmPackage: 'https://static.example.com/zetaoffice/',
-        zetaJsUrl,
-      }).convert(request)
-    },
-  },
+const documents = createDocumentsPack({
+  legacyOffice: { converter },
 })
 ```
 
-转换完成后，适配器创建本地对象 URL，并在现有 PDF 预览区域中展示结果。原始文件和生成的 PDF 默认不会离开浏览器。
+宿主系统负责选择转换服务或本地运行资源，并决定文件是否允许离开浏览器。未配置所需能力时，组件会给出明确的不支持或配置提示。
 
-## ZetaOffice 部署要求
+## 上线检查
 
-ZetaOffice 不是普通的纯 JavaScript 依赖。转换器默认使用官方 `free` beta CDN，让 Playground 无需复制大型运行时即可工作。生产环境建议审查服务条款并自行托管：
+- 页面和运行资源使用 HTTPS，并设置正确的跨域响应头；
+- 限制输入大小、转换时长、并发数和内存占用；
+- 显示处理进度，并允许用户取消耗时任务；
+- 禁止宏、外部链接更新和联网内容加载；
+- 明确告知用户文件是在本地处理还是发送到服务端；
+- 审查所选转换能力和字体资源的商业许可。
 
-- `soffice.js`
-- `soffice.wasm`
-- `soffice.data`
-- `soffice.data.js.metadata`
-
-生产环境应固定并缓存 WASM 资源版本：
-
-```bash
-VITE_ZETAOFFICE_ASSET_URL=https://static.example.com/zetaoffice/ pnpm dev
-```
-
-文档页面必须启用跨源隔离：
-
-```http
-Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Embedder-Policy: require-corp
-```
-
-如果资源托管在其他源，还需要提供兼容的 CORS 和 `Cross-Origin-Resource-Policy` 响应头。
-
-上线前请验证：
-
-- COOP / COEP 对 iframe、SSO、支付和第三方集成的影响；
-- WASM 资源的自托管、版本固定和不可变缓存；
-- 转换进度、内存限制、输入限制和 Worker 生命周期；
-- LibreOffice、ZetaOffice 及字体资源的许可证；
-- 宏、链接和联网文档加载均被禁用。
-
-转换器以只读模式打开文档，不执行宏，不更新链接文档，完成后清理临时文件，并拒绝超过适配器限制的输入。
+涉及浏览器大型转换时，可能需要跨源隔离响应头，详见[运行环境与部署](/deployment)。

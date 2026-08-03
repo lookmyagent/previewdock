@@ -10,6 +10,8 @@ const textFile: FileDescriptor = {
   mimeType: 'text/plain',
   size: 5,
   head: new Uint8Array([104, 101, 108, 108, 111]),
+  readRange: async () => new Uint8Array(),
+  randomAccess: 'memory',
 }
 
 describe('AdapterRegistry', () => {
