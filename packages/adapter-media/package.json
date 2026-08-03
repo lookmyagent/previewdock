@@ -3,9 +3,20 @@
   "version": "0.1.0",
   "description": "Browser-native audio and video adapter for PreviewDock",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lookmyagent/previewdock.git",
+    "directory": "packages/adapter-media"
+  },
+  "homepage": "https://github.com/lookmyagent/previewdock#readme",
+  "bugs": {
+    "url": "https://github.com/lookmyagent/previewdock/issues"
+  },
   "type": "module",
   "sideEffects": false,
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "access": "public"
   },

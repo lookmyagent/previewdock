@@ -1,6 +1,6 @@
 <template>
   <div class="portal">
-    <header class="portal-nav">
+    <header v-if="false" class="portal-nav">
       <a class="portal-brand" href="#top" aria-label="PreviewDock">
         <span class="portal-brand__mark" aria-hidden="true">
           <svg viewBox="0 0 32 32">
@@ -17,6 +17,7 @@
 
       <nav class="portal-nav__links" :aria-label="marketing.navigation">
         <a href="#features">{{ marketing.navFeatures }}</a>
+        <a href="#plans">{{ marketing.navPlans }}</a>
         <a href="#formats">{{ marketing.navFormats }}</a>
         <a href="#integration">{{ marketing.navIntegration }}</a>
         <a href="#playground">{{ marketing.navPlayground }}</a>
@@ -34,8 +35,10 @@
       </div>
     </header>
 
-    <main id="top" class="portal-main">
-      <section class="hero-section">
+    <SiteHeader active="playground" :links="projectLinks" :locale="locale" @change-locale="locale = $event" />
+
+    <main id="top" class="portal-main playground-main">
+      <section v-if="false" class="hero-section">
         <div class="hero-glow hero-glow--one" aria-hidden="true"></div>
         <div class="hero-glow hero-glow--two" aria-hidden="true"></div>
 
@@ -109,11 +112,11 @@
         </div>
       </section>
 
-      <section class="format-rail" :aria-label="marketing.supportedFormats">
+      <section v-if="false" class="format-rail" :aria-label="marketing.supportedFormats">
         <span v-for="format in featuredFormats" :key="format" class="format-pill">{{ format }}</span>
       </section>
 
-      <section id="features" class="portal-section features-section">
+      <section v-if="false" id="features" class="portal-section features-section">
         <div class="section-heading">
           <span>{{ marketing.featureKicker }}</span>
           <h2>{{ marketing.featureTitle }}</h2>
@@ -129,7 +132,7 @@
         </div>
       </section>
 
-      <section class="architecture-section">
+      <section v-if="false" class="architecture-section">
         <div class="architecture-copy">
           <span class="section-kicker">{{ marketing.architectureKicker }}</span>
           <h2>{{ marketing.architectureTitle }}</h2>
@@ -160,7 +163,38 @@
         </div>
       </section>
 
-      <section id="formats" class="portal-section formats-section">
+      <section v-if="false" id="plans" class="portal-section plans-section">
+        <div class="section-heading section-heading--split">
+          <div>
+            <span>{{ marketing.plansKicker }}</span>
+            <h2>{{ marketing.plansTitle }}</h2>
+          </div>
+          <p>{{ marketing.plansDescription }}</p>
+        </div>
+
+        <div class="plan-grid">
+          <article v-for="(plan, index) in marketing.plans" :key="plan.title" class="plan-card" :class="{ 'plan-card--featured': plan.featured }">
+            <div class="plan-card__topline">
+              <span class="plan-card__index">0{{ index + 1 }}</span>
+              <span v-if="plan.featured" class="plan-card__recommended">{{ marketing.recommended }}</span>
+            </div>
+            <h3>{{ plan.title }}</h3>
+            <p>{{ plan.description }}</p>
+            <div class="plan-card__cost">
+              <span>{{ marketing.browserCost }}</span>
+              <strong>{{ plan.cost }}</strong>
+              <small>{{ plan.costNote }}</small>
+            </div>
+            <ul>
+              <li v-for="capability in plan.capabilities" :key="capability"><span aria-hidden="true">✓</span>{{ capability }}</li>
+            </ul>
+            <code>{{ plan.pack }}</code>
+          </article>
+        </div>
+        <p class="plans-note">{{ marketing.plansNote }}</p>
+      </section>
+
+      <section v-if="false" id="formats" class="portal-section formats-section">
         <div class="section-heading section-heading--split">
           <div>
             <span>{{ marketing.formatsKicker }}</span>
@@ -181,7 +215,7 @@
         <p class="format-disclaimer">{{ marketing.formatDisclaimer }}</p>
       </section>
 
-      <section id="integration" class="integration-section">
+      <section v-if="false" id="integration" class="integration-section">
         <div class="integration-copy">
           <span class="section-kicker">{{ marketing.integrationKicker }}</span>
           <h2>{{ marketing.integrationTitle }}</h2>
@@ -312,7 +346,7 @@
       </section>
     </main>
 
-    <footer class="portal-footer">
+    <footer v-if="false" class="portal-footer">
       <div class="portal-footer__brand">
         <span class="portal-brand__mark" aria-hidden="true">
           <svg viewBox="0 0 32 32"><path d="M8.5 3.5h10l5 5v20h-15z"/><path d="M18.5 3.5v6h5"/><path d="M12 15.5h8M12 20h8M12 24.5h5"/></svg>
@@ -340,12 +374,18 @@ import { imageAdapterManifest } from '@previewdock/adapter-image/manifest'
 import { pdfAdapterManifest } from '@previewdock/adapter-pdf/manifest'
 import { mediaAdapterManifest } from '@previewdock/adapter-media/manifest'
 import { advancedImageAdapterManifest } from '@previewdock/adapter-advanced-image/manifest'
-import { modelAdapterManifest } from '@previewdock/adapter-3d/manifest'
+import { createModelAdapterManifest } from '@previewdock/adapter-3d/manifest'
 import { openXmlAdapterManifest } from '@previewdock/adapter-openxml/manifest'
 import { createArchiveAdapterManifest } from '@previewdock/adapter-archive/manifest'
 import { createLegacyOfficeAdapterManifest } from '@previewdock/adapter-legacy-office/manifest'
+import { structuredAdapterManifest } from '@previewdock/adapter-structured/manifest'
 import { PreviewDock, viewerMessages, type ViewerLocale } from '@previewdock/vue'
 import { strToU8, zipSync } from 'fflate'
+import { getSiteLocale, setSiteLocale, SiteHeader } from '@previewdock/site-shell'
+import '@previewdock/site-shell/style.css'
+import { projectLinks } from '../../../config/project'
+
+const assetBase = import.meta.env.BASE_URL
 
 interface SampleFile {
   id: string
@@ -368,6 +408,7 @@ interface InspectorState {
 
 const ui = {
   en: {
+    home: 'Home', online: 'Playground', docs: 'Docs', localNotice: 'Your file stays in this browser',
     openFile: 'Open file', language: 'Language', detectionMode: 'File detection mode',
     autoDetect: 'Auto detect', extensionFirst: 'Extension first', magicFirst: 'Magic bytes first',
     source: 'Source', samples: 'samples', searchFiles: 'Search files', preview: 'Preview',
@@ -379,9 +420,18 @@ const ui = {
     markdown: 'Markdown', plainText: 'Plain text', csv: 'CSV', json: 'JSON',
     svgImage: 'SVG image', pdfDocument: 'PDF document', zipArchive: 'ZIP archive',
     wordDocument: 'Word document', spreadsheet: 'Spreadsheet', presentation: 'Presentation',
+    bpmnWorkflow: 'Formatted BPMN workflow', xmindMap: 'XMind mind map', visioDiagram: 'Visio diagram',
+    odfDocument: 'OpenDocument document', ofdDocument: 'OFD document', epubBook: 'EPUB book',
+    emailMessage: 'Email message', rtfDocument: 'RTF document',
+    wpsDocument: 'WPS Writer document', wpsSpreadsheet: 'WPS spreadsheet',
+    wpsPresentation: 'WPS presentation', windowsMetafile: 'Windows metafile',
+    dxfDrawing: 'Interactive DXF drawing', stepModel: 'Interactive STEP model',
+    igesModel: 'Interactive IGES model', offModel: 'Interactive OFF model', rhinoModel: 'Interactive Rhino 3DM model',
+    ifcModel: 'Interactive IFC building model',
     localFile: 'Local file', detecting: 'Detecting…', resolving: 'Resolving…',
   },
   'zh-CN': {
+    home: '首页', online: '在线预览', docs: '文档', localNotice: '文件仅在当前浏览器中处理',
     openFile: '打开文件', language: '语言', detectionMode: '文件识别方式',
     autoDetect: '自动识别', extensionFirst: '扩展名优先', magicFirst: '文件特征优先',
     source: '文件', samples: '个示例', searchFiles: '搜索文件', preview: '预览',
@@ -393,13 +443,21 @@ const ui = {
     markdown: 'Markdown', plainText: '纯文本', csv: 'CSV', json: 'JSON',
     svgImage: 'SVG 图片', pdfDocument: 'PDF 文档', zipArchive: 'ZIP 压缩包',
     wordDocument: 'Word 文档', spreadsheet: '电子表格', presentation: '演示文稿',
+    bpmnWorkflow: '格式化 BPMN 工作流', xmindMap: 'XMind 思维导图', visioDiagram: 'Visio 流程图',
+    odfDocument: 'OpenDocument 文档', ofdDocument: 'OFD 文档', epubBook: 'EPUB 电子书',
+    emailMessage: '邮件消息', rtfDocument: 'RTF 富文本文档',
+    wpsDocument: 'WPS 文字文档', wpsSpreadsheet: 'WPS 表格',
+    wpsPresentation: 'WPS 演示文稿', windowsMetafile: 'Windows 图元文件',
+    dxfDrawing: '交互式 DXF 图纸', stepModel: '交互式 STEP 模型',
+    igesModel: '交互式 IGES 模型', offModel: '交互式 OFF 模型', rhinoModel: '交互式 Rhino 3DM 模型',
+    ifcModel: '交互式 IFC 建筑模型',
     localFile: '本地文件', detecting: '识别中…', resolving: '加载中…',
   },
 } as const
 
 type UiKey = keyof typeof ui.en
 
-const locale = ref<ViewerLocale>('zh-CN')
+const locale = ref<ViewerLocale>(getSiteLocale())
 function t(key: UiKey): string {
   return ui[locale.value][key]
 }
@@ -424,7 +482,7 @@ const marketing = computed(() => {
   if (locale.value === 'zh-CN') {
     return {
       navigation: '门户导航',
-      navFeatures: '核心能力', navFormats: '格式支持', navIntegration: '快速接入', navPlayground: '在线体验',
+      navFeatures: '核心能力', navPlans: '接入方案', navFormats: '格式支持', navIntegration: '快速接入', navPlayground: '在线体验',
       openDemo: '打开体验台',
       heroBadge: '纯前端 · 本地优先 · 按需加载',
       heroTitle: '一个组件，', heroAccent: '预览几乎所有文件',
@@ -450,6 +508,16 @@ const marketing = computed(() => {
       architectureDescription: '核心只负责识别、路由和生命周期。重型解析器在命中格式后再异步加载，业务首屏不为偶尔使用的格式买单。',
       architecturePoints: ['适配器清单轻量注册', 'Worker / WASM 可独立部署', '关闭预览时确定性释放资源'],
       detectSource: '文件名、MIME 与特征字节', lightweightCore: '轻量核心运行时', loadMatchedOnly: '只加载命中的适配器',
+      plansKicker: 'INTEGRATION PROFILES', plansTitle: '按场景接入，也按体积取舍',
+      plansDescription: '从轻量预览到专业格式支持，能力包自由组合。安装某项能力不等于把解析器塞进首屏，重型资源仍在首次命中对应格式时加载。',
+      recommended: '推荐起步', browserCost: '关键增量体积',
+      plans: [
+        { title: '轻量基础版', description: '适合消息附件、审批附件和简单文件详情页。', cost: '约 80 KB', costNote: '基础浏览器代码，压缩前', capabilities: ['文本、Markdown 与数据文件', '常见图片与 SVG', '浏览器原生 PDF'], pack: 'core + vue + basic', featured: true },
+        { title: '企业文档版', description: '适合知识库、协作平台和办公文档中心。', cost: '约 1.3 MB', costNote: 'Office 渲染器按类型加载', capabilities: ['包含轻量基础能力', 'DOCX / XLSX / PPTX', '现代 Office 高保真预览'], pack: 'basic + modern-office', featured: false },
+        { title: '文件中心版', description: '适合网盘、资产库和需要查看压缩包内容的系统。', cost: '约 1.1 MB', costNote: 'RAR / 7Z Worker 与 WASM', capabilities: ['包含基础与 Office 能力', 'ZIP / RAR / 7Z / TAR', '压缩包内文件继续预览'], pack: 'basic + office + archive', featured: false },
+        { title: '专业全能力版', description: '适合设计资产、工程模型和复杂历史文档场景。', cost: '按需组合', costNote: '旧版 DOC / PPT 可选约 53 MB WASM', capabilities: ['PSD / TIFF 等高级图片', '主流 3D 模型交互预览', '可选旧版 Office 转换'], pack: 'selected packs + optional WASM', featured: false },
+      ],
+      plansNote: '以上为当前工作区的未压缩近似值；生产环境会受压缩、缓存、依赖去重与浏览器能力影响。',
       formatsKicker: 'FORMAT COVERAGE', formatsTitle: '从办公文档到 3D 模型',
       formatsDescription: '当前实现以“能呈现有用内容”为支持标准，并明确区分原生、实验性与可选转换能力。',
       formatFamilies: [
@@ -473,7 +541,7 @@ const marketing = computed(() => {
 
   return {
     navigation: 'Portal navigation',
-    navFeatures: 'Features', navFormats: 'Formats', navIntegration: 'Integration', navPlayground: 'Playground',
+    navFeatures: 'Features', navPlans: 'Profiles', navFormats: 'Formats', navIntegration: 'Integration', navPlayground: 'Playground',
     openDemo: 'Open playground',
     heroBadge: 'Browser-native · Local-first · Lazy-loaded',
     heroTitle: 'One component.', heroAccent: 'Preview almost any file.',
@@ -499,6 +567,16 @@ const marketing = computed(() => {
     architectureDescription: 'The core handles detection, routing, and lifecycle. Heavy parsers load after a format match, so occasional formats never tax the application shell.',
     architecturePoints: ['Lightweight adapter manifests', 'Worker and WASM assets deploy independently', 'Deterministic cleanup when a preview closes'],
     detectSource: 'Name, MIME, and magic bytes', lightweightCore: 'Lightweight core runtime', loadMatchedOnly: 'Only the matching adapter loads',
+    plansKicker: 'INTEGRATION PROFILES', plansTitle: 'Choose by use case and payload budget',
+    plansDescription: 'Combine capability packs from a lightweight viewer to specialist formats. Installing a pack does not put its parser on the first load; heavy resources still arrive only after a matching file is opened.',
+    recommended: 'Recommended start', browserCost: 'Key incremental payload',
+    plans: [
+      { title: 'Basic viewer', description: 'For message attachments, approval flows, and simple file detail pages.', cost: '≈ 80 KB', costNote: 'basic browser code, uncompressed', capabilities: ['Text, Markdown, and data files', 'Common images and SVG', 'Browser-native PDF'], pack: 'core + vue + basic', featured: true },
+      { title: 'Business documents', description: 'For knowledge bases, collaboration suites, and document centers.', cost: '≈ 1.3 MB', costNote: 'Office renderers load per type', capabilities: ['Everything in Basic', 'DOCX / XLSX / PPTX', 'High-fidelity modern Office preview'], pack: 'basic + modern-office', featured: false },
+      { title: 'File center', description: 'For drives, asset libraries, and products that inspect archives.', cost: '≈ 1.1 MB', costNote: 'RAR / 7Z Worker and WASM', capabilities: ['Basic and Office capabilities', 'ZIP / RAR / 7Z / TAR', 'Preview files nested in archives'], pack: 'basic + office + archive', featured: false },
+      { title: 'Specialist viewer', description: 'For design assets, engineering models, and legacy documents.', cost: 'Compose as needed', costNote: 'legacy DOC / PPT adds optional ≈ 53 MB WASM', capabilities: ['PSD / TIFF advanced images', 'Interactive mainstream 3D models', 'Optional legacy Office conversion'], pack: 'selected packs + optional WASM', featured: false },
+    ],
+    plansNote: 'Figures are approximate uncompressed measurements from this workspace. Production compression, caching, deduplication, and browser support will affect the final cost.',
     formatsKicker: 'FORMAT COVERAGE', formatsTitle: 'From office documents to 3D models',
     formatsDescription: 'Support means rendering useful content. Native, experimental, and optional conversion paths are intentionally distinguished.',
     formatFamilies: [
@@ -589,7 +667,7 @@ const archivePack = defineAdapterPack({
   id: 'archive',
   label: 'ZIP, JAR, TAR, GZIP, RAR and 7Z',
   adapters: [createArchiveAdapterManifest({
-    workerUrl: '/libarchive/worker-bundle.js',
+    workerUrl: `${assetBase}libarchive/worker-bundle.js`,
     async previewEntry({ file, container, signal }) {
       if (signal.aborted) throw new DOMException('Preview was cancelled', 'AbortError')
       const nestedEngine = new ViewerEngine(engine.registry)
@@ -621,7 +699,11 @@ const archivePack = defineAdapterPack({
 const modelPack = defineAdapterPack({
   id: 'model-3d',
   label: 'Interactive 3D models',
-  adapters: [modelAdapterManifest],
+  adapters: [createModelAdapterManifest({
+    occtWasmUrl: `${assetBase}occt/occt-import-js.wasm`,
+    rhinoLibraryPath: `${assetBase}rhino/`,
+    ifcWasmPath: `${assetBase}ifc/`,
+  })],
 })
 
 const officePack = defineAdapterPack({
@@ -650,10 +732,16 @@ const officePack = defineAdapterPack({
   ],
 })
 
+const structuredPack = defineAdapterPack({
+  id: 'structured-documents',
+  label: 'BPMN, XMind, EPUB, email, ODF, OFD and Visio',
+  adapters: [structuredAdapterManifest],
+})
+
 let chineseOfficeFontPromise: Promise<Array<{ name: string, data: ArrayBuffer }>> | undefined
 function loadChineseOfficeFont(): Promise<Array<{ name: string, data: ArrayBuffer }>> {
   if (!chineseOfficeFontPromise) {
-    chineseOfficeFontPromise = fetch('/fonts/NotoSansCJKsc-Regular.otf').then(async response => {
+    chineseOfficeFontPromise = fetch(`${assetBase}fonts/NotoSansCJKsc-Regular.otf`).then(async response => {
       if (!response.ok) throw new Error(`中文字体加载失败：${response.status}`)
       return [{ name: 'NotoSansCJKsc-Regular.otf', data: await response.arrayBuffer() }]
     })
@@ -667,6 +755,7 @@ const engine: ViewerEngine = createViewerEngine([
   archivePack,
   modelPack,
   officePack,
+  structuredPack,
 ])
 const fileInputRef = ref<HTMLInputElement>()
 const query = ref('')
@@ -866,12 +955,174 @@ const svgSample = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520"
 
 const samples = ref<SampleFile[]>([
   {
+    id: 'model-ifc',
+    name: 'Duplex.ifc',
+    labelKey: 'ifcModel',
+    shortType: 'IFC',
+    kind: 'model',
+    source: `${assetBase}samples/models/Duplex.ifc`,
+    size: 1297114,
+  },
+  {
+    id: 'model-3dm',
+    name: 'Motore_Radiale_14_Cilindri.3dm',
+    labelKey: 'rhinoModel',
+    shortType: '3DM',
+    kind: 'model',
+    source: `${assetBase}samples/models/Motore_Radiale_14_Cilindri.3dm`,
+    size: 1282442,
+  },
+  {
+    id: 'cad-dxf',
+    name: 'all.dxf',
+    labelKey: 'dxfDrawing',
+    shortType: 'DXF',
+    kind: 'model',
+    source: `${assetBase}samples/models/all.dxf`,
+    size: 398490,
+  },
+  {
+    id: 'cad-step',
+    name: '游戏手柄.STEP',
+    labelKey: 'stepModel',
+    shortType: 'STEP',
+    kind: 'model',
+    source: `${assetBase}samples/models/游戏手柄.STEP`,
+    size: 375035,
+  },
+  {
+    id: 'cad-iges',
+    name: 'ceshi001.iges',
+    labelKey: 'igesModel',
+    shortType: 'IGES',
+    kind: 'model',
+    source: `${assetBase}samples/models/ceshi001.iges`,
+    size: 229554,
+  },
+  {
+    id: 'model-off',
+    name: 'sample.off',
+    labelKey: 'offModel',
+    shortType: 'OFF',
+    kind: 'model',
+    source: `${assetBase}samples/models/sample.off`,
+    size: 167,
+  },
+  {
+    id: 'wps-document',
+    name: '基层党建指挥平台项目需求书.wps',
+    labelKey: 'wpsDocument',
+    shortType: 'WPS',
+    kind: 'document',
+    source: `${assetBase}samples/office/基层党建指挥平台项目需求书.wps`,
+    size: 13312,
+  },
+  {
+    id: 'wps-spreadsheet',
+    name: '工作簿1.et',
+    labelKey: 'wpsSpreadsheet',
+    shortType: 'ET',
+    kind: 'table',
+    source: `${assetBase}samples/office/工作簿1.et`,
+    size: 20992,
+  },
+  {
+    id: 'wps-presentation',
+    name: 'WPS演示文稿.dps',
+    labelKey: 'wpsPresentation',
+    shortType: 'DPS',
+    kind: 'presentation',
+    source: `${assetBase}samples/office/WPS演示文稿.dps`,
+    size: 20992,
+  },
+  {
+    id: 'windows-metafile',
+    name: 'image54.wmf',
+    labelKey: 'windowsMetafile',
+    shortType: 'WMF',
+    kind: 'image',
+    source: `${assetBase}samples/images/image54.wmf`,
+    size: 2012,
+  },
+  {
+    id: 'bpmn-approval-flow',
+    name: 'approval_of_bookmarks.bpmn',
+    labelKey: 'bpmnWorkflow',
+    shortType: 'BPMN',
+    kind: 'diagram',
+    source: `${assetBase}samples/structured/approval_of_bookmarks.bpmn`,
+    size: 12355,
+  },
+  {
+    id: 'xmind-architecture-study',
+    name: '系统架构师备考.xmind',
+    labelKey: 'xmindMap',
+    shortType: 'XMIND',
+    kind: 'diagram',
+    source: `${assetBase}samples/structured/系统架构师备考.xmind`,
+    size: 1934624,
+  },
+  {
+    id: 'visio-tpch-module',
+    name: 'TPCH模块.vsdx',
+    labelKey: 'visioDiagram',
+    shortType: 'VSDX',
+    kind: 'diagram',
+    source: `${assetBase}samples/structured/TPCH模块.vsdx`,
+    size: 41335,
+  },
+  {
+    id: 'ofd-document',
+    name: 'fileTest.ofd',
+    labelKey: 'ofdDocument',
+    shortType: 'OFD',
+    kind: 'document',
+    source: `${assetBase}samples/structured/fileTest.ofd`,
+    size: 82318,
+  },
+  {
+    id: 'odt-document',
+    name: 'bh_fiche_adhesion.odt',
+    labelKey: 'odfDocument',
+    shortType: 'ODT',
+    kind: 'document',
+    source: `${assetBase}samples/structured/bh_fiche_adhesion.odt`,
+    size: 172220,
+  },
+  {
+    id: 'epub-book',
+    name: 'The Moon and Sixpence.epub',
+    labelKey: 'epubBook',
+    shortType: 'EPUB',
+    kind: 'document',
+    source: `${assetBase}samples/structured/The Moon and Sixpence.epub`,
+    size: 608912,
+  },
+  {
+    id: 'email-message',
+    name: 'sample.eml',
+    labelKey: 'emailMessage',
+    shortType: 'EML',
+    kind: 'document',
+    source: `${assetBase}samples/structured/sample.eml`,
+    size: 112,
+  },
+  {
+    id: 'rtf-document',
+    name: 'sample.rtf',
+    labelKey: 'rtfDocument',
+    shortType: 'RTF',
+    kind: 'document',
+    source: `${assetBase}samples/structured/sample.rtf`,
+    size: 94,
+  },
+  {
     id: 'legacy-doc-chinese-regression',
     name: '案例专辑+历年真题 勘误.doc',
     customLabel: '旧版 Word · 中文验证',
     shortType: 'DOC',
     kind: 'document',
-    source: '/samples/案例专辑+历年真题 勘误.doc',
+    source: `${assetBase}samples/案例专辑+历年真题 勘误.doc`,
     size: 1043456,
   },
   {
@@ -880,7 +1131,7 @@ const samples = ref<SampleFile[]>([
     customLabel: 'RAR 压缩包',
     shortType: 'RAR',
     kind: 'archive',
-    source: '/samples/archives/sample.rar',
+    source: `${assetBase}samples/archives/sample.rar`,
     size: 95351,
   },
   {
@@ -889,7 +1140,7 @@ const samples = ref<SampleFile[]>([
     customLabel: '7Z 压缩包',
     shortType: '7Z',
     kind: 'archive',
-    source: '/samples/archives/sample.7z',
+    source: `${assetBase}samples/archives/sample.7z`,
     size: 340,
   },
   {
@@ -898,7 +1149,7 @@ const samples = ref<SampleFile[]>([
     customLabel: 'TAR 压缩包',
     shortType: 'TAR',
     kind: 'archive',
-    source: '/samples/archives/sample.tar',
+    source: `${assetBase}samples/archives/sample.tar`,
     size: 14848,
   },
   {
@@ -907,7 +1158,7 @@ const samples = ref<SampleFile[]>([
     customLabel: 'GZIP 压缩包',
     shortType: 'GZ',
     kind: 'archive',
-    source: '/samples/archives/sample.gzip',
+    source: `${assetBase}samples/archives/sample.gzip`,
     size: 145,
   },
   {
@@ -916,7 +1167,7 @@ const samples = ref<SampleFile[]>([
     customLabel: 'JAR 压缩包',
     shortType: 'JAR',
     kind: 'archive',
-    source: '/samples/archives/sample.jar',
+    source: `${assetBase}samples/archives/sample.jar`,
     size: 735,
   },
   {
@@ -1021,13 +1272,13 @@ const rendererLabels: Record<ViewerLocale, Record<string, string>> = {
     text: 'Text renderer', image: 'Browser image renderer', pdf: 'Browser PDF viewer',
     media: 'Browser media player', archive: 'Archive browser', 'model-3d': 'Interactive 3D model viewer',
     'advanced-image': 'TIFF, TGA and PSD renderer', 'legacy-office': 'Legacy Office preview',
-    openxml: 'High-fidelity Office preview',
+    openxml: 'High-fidelity Office preview', structured: 'Structured document renderer',
   },
   'zh-CN': {
     text: '文本渲染器', image: '浏览器图片渲染器', pdf: '浏览器 PDF 查看器',
     media: '浏览器媒体播放器', archive: '压缩包浏览器', 'model-3d': '交互式 3D 模型查看器',
     'advanced-image': 'TIFF、TGA 与 PSD 渲染器', 'legacy-office': '旧版 Office 预览',
-    openxml: '高保真 Office 预览',
+    openxml: '高保真 Office 预览', structured: '结构化文档渲染器',
   },
 }
 const rendererName = computed(() => {
@@ -1038,7 +1289,7 @@ const rendererName = computed(() => {
 const translatedStatus = computed(() => viewerMessages[locale.value].phases[status.value.phase])
 
 watch(locale, nextLocale => {
-  document.documentElement.lang = nextLocale
+  setSiteLocale(nextLocale)
 }, { immediate: true })
 
 function selectSample(sample: SampleFile): void {

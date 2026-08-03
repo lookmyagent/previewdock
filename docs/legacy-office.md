@@ -1,29 +1,23 @@
-# Legacy Office browser integration
+# 旧版 Office 浏览器接入
 
-The legacy Office adapter deliberately uses two different routes.
+旧版 Office 适配器提供两条处理路径：旧版 Excel 在浏览器内读取，DOC/PPT 通过可选的 LibreOffice WebAssembly 转换。
 
-## XLS, XLT and XLA
+## XLS、XLT 和 XLA
 
-Binary Excel workbooks are parsed directly with SheetJS and rendered through
-the same bounded, read-only workbook UI used by the other spreadsheet
-adapters. SheetJS is imported only when a matching file is opened.
+二进制 Excel 工作簿由 SheetJS 直接解析，并使用与其他表格适配器相同的受限只读工作簿界面渲染。只有打开匹配文件时才会导入 SheetJS。
 
-The browser limits each preview to:
+浏览器对每次预览限制为：
 
-- 30 MB input
-- 20 worksheets
-- 500 rows per worksheet
-- 100 columns per worksheet
+- 输入文件不超过 30 MB；
+- 不超过 20 个工作表；
+- 每个工作表最多读取 500 行；
+- 每个工作表最多读取 100 列。
 
-These limits protect the UI from malicious or accidentally enormous workbook
-ranges. Macros are never executed.
+这些限制用于保护界面，避免恶意文件或意外的超大范围占用资源。不会执行宏。
 
-## DOC and PPT
+## DOC 和 PPT
 
-DOC and PPT require a full document layout engine for useful fidelity. The
-optional `converter-zetaoffice` package implements the adapter contract with
-LibreOffice WebAssembly. It is dynamically imported only after a DOC or PPT is
-opened:
+DOC 和 PPT 需要完整的文档布局引擎才能获得有用的还原度。可选的 `converter-zetaoffice` 包使用 LibreOffice WebAssembly，并且只在打开 DOC/PPT 后动态加载：
 
 ```ts
 import { createLegacyOfficeAdapter } from '@previewdock/adapter-legacy-office'
@@ -32,12 +26,9 @@ const adapter = createLegacyOfficeAdapter({
   converter: {
     id: 'zetaoffice-wasm',
     async convert(request) {
-      const { createZetaOfficeConverter } = await import(
-        '@previewdock/converter-zetaoffice'
-      )
+      const { createZetaOfficeConverter } = await import('@previewdock/converter-zetaoffice')
       const { default: zetaJsUrl } = await import('zetajs/zeta.js?url')
       return createZetaOfficeConverter({
-        // `free` is useful for evaluation. Use your own static URL in production.
         wasmPackage: 'https://static.example.com/zetaoffice/',
         zetaJsUrl,
       }).convert(request)
@@ -46,56 +37,38 @@ const adapter = createLegacyOfficeAdapter({
 })
 ```
 
-After conversion, the adapter creates a local object URL and displays the PDF
-inside the existing PDF preview surface. The original file and generated PDF
-do not need to leave the browser.
+转换完成后，适配器创建本地对象 URL，并在现有 PDF 预览区域中展示结果。原始文件和生成的 PDF 默认不会离开浏览器。
 
-## ZetaOffice deployment requirements
+## ZetaOffice 部署要求
 
-ZetaOffice is not a normal JavaScript-only dependency. The converter defaults
-to the official `free` beta CDN so the playground works without copying the
-large runtime. Production systems should review the service terms and normally
-self-host these static runtime files:
+ZetaOffice 不是普通的纯 JavaScript 依赖。转换器默认使用官方 `free` beta CDN，让 Playground 无需复制大型运行时即可工作。生产环境建议审查服务条款并自行托管：
 
 - `soffice.js`
 - `soffice.wasm`
 - `soffice.data`
 - `soffice.data.js.metadata`
 
-The small `zeta.js` wrapper is emitted by the host bundler through
-`zetajs/zeta.js?url`; the `zetaHelper.js` wrapper and conversion worker are
-bundled with the optional converter package. The large `soffice.*` files remain
-separate and cacheable.
-
-For the playground, point to a self-hosted runtime with:
+生产环境应固定并缓存 WASM 资源版本：
 
 ```bash
 VITE_ZETAOFFICE_ASSET_URL=https://static.example.com/zetaoffice/ pnpm dev
 ```
 
-The document page must be cross-origin isolated:
+文档页面必须启用跨源隔离：
 
 ```http
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-When the runtime files are hosted on another origin, that origin must also
-provide compatible CORS and `Cross-Origin-Resource-Policy` headers.
+如果资源托管在其他源，还需要提供兼容的 CORS 和 `Cross-Origin-Resource-Policy` 响应头。
 
-Before enabling it in production:
+上线前请验证：
 
-- test existing iframe, SSO, payment and third-party integrations under COOP / COEP;
-- host and version the WASM assets rather than depending permanently on a demo CDN;
-- expose loading progress and cache immutable runtime files with a Service Worker;
-- keep conversion in the ZetaOffice worker and enforce memory and input limits;
-- disable macros, links and network-enabled document loading;
-- review LibreOffice, ZetaOffice and redistributed binary licenses.
+- COOP / COEP 对 iframe、SSO、支付和第三方集成的影响；
+- WASM 资源的自托管、版本固定和不可变缓存；
+- 转换进度、内存限制、输入限制和 Worker 生命周期；
+- LibreOffice、ZetaOffice 及字体资源的许可证；
+- 宏、链接和联网文档加载均被禁用。
 
-The converter opens documents read-only, disables macro execution, disables
-linked-document updates, serializes conversions, removes temporary files from
-the in-browser filesystem, and rejects input above the adapter's 30 MB limit.
-
-The official ZetaJS repository includes a `convertpdf` example that writes a
-local file into the Emscripten filesystem, invokes LibreOffice through UNO, and
-reads the generated PDF back into the page.
+转换器以只读模式打开文档，不执行宏，不更新链接文档，完成后清理临时文件，并拒绝超过适配器限制的输入。

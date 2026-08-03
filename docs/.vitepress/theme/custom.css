@@ -1,0 +1,30 @@
+.previewdock-docs-shell {
+  --vp-nav-height: 64px;
+}
+
+.previewdock-docs-shell .VPNav {
+  display: none !important;
+}
+
+.previewdock-docs-shell .VPContent {
+  padding-top: 64px !important;
+}
+
+.previewdock-docs-shell .VPSidebar {
+  padding-top: 88px !important;
+}
+
+.previewdock-docs-shell .VPFooter {
+  display: none !important;
+}
+
+.previewdock-docs-shell .site-footer {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 760px) {
+  .previewdock-docs-shell .VPSidebar {
+    padding-top: 76px !important;
+  }
+}

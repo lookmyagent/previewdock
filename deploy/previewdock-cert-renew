@@ -1,0 +1,1 @@
+17 3 * * * root certbot renew --quiet --config-dir /opt/med-hub-https/certs/letsencrypt --work-dir /var/lib/letsencrypt-previewdock --logs-dir /var/log/letsencrypt-previewdock --deploy-hook "docker exec ruoyi-web nginx -s reload"

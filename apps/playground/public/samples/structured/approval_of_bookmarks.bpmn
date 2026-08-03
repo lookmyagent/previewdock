@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:activiti="http://activiti.org/bpmn" targetNamespace="http://www.activiti.org/test" exporter="Camunda Modeler" exporterVersion="3.0.0">
+  <process id="approval_of_bookmarks" name="文书签发审批" isExecutable="true">
+    <startEvent id="startevent1" name="发起人" activiti:initiator="${initiator}" activiti:formKey="approval_of_bookmarks_01" />
+    <userTask id="document_approval01" name="核对人" activiti:assignee="${checker}" activiti:formKey="approval_of_bookmarks_02" activiti:skipExpression="${execution.getVariable(&#39;skip&#39;) == 1}">
+      <extensionElements>
+        <activiti:taskListener event="complete" delegateExpression="${approvalOfBookmarks01Listener}" />
+      </extensionElements>
+      <multiInstanceLoopCharacteristics activiti:collection="${checkerList}" activiti:elementVariable="checker">
+        <completionCondition>${multiInstance.completeTask(execution)}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="document_approval_flow01" name="发起审批" sourceRef="startevent1" targetRef="document_approval01">
+      <extensionElements>
+        <activiti:executionListener event="take" delegateExpression="${approvalOfBookmarksFlow01Listener}" />
+      </extensionElements>
+    </sequenceFlow>
+    <userTask id="document_approval02" name="合议庭" activiti:assignee="${bench}" activiti:formKey="approval_of_bookmarks_02" activiti:skipExpression="${execution.getVariable(&#39;skip&#39;) == 1}">
+      <extensionElements>
+        <activiti:taskListener event="complete" delegateExpression="${approvalOfBookmarks02Listener}" />
+      </extensionElements>
+      <multiInstanceLoopCharacteristics activiti:collection="${benchList}" activiti:elementVariable="bench">
+        <completionCondition>${multiInstance.completeTask(execution)}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="document_approval_flow02" name="审批通过" sourceRef="document_approval01" targetRef="document_approval02">
+      <extensionElements>
+        <activiti:executionListener event="take" delegateExpression="${approvalOfBookmarksFlow02Listener}" />
+      </extensionElements>
+    </sequenceFlow>
+    <userTask id="document_approval03" name="签发人" activiti:assignee="${issuer}" activiti:formKey="approval_of_bookmarks_02" activiti:skipExpression="${execution.getVariable(&#39;skip&#39;) == 1}">
+      <extensionElements>
+        <activiti:taskListener event="complete" delegateExpression="${approvalOfBookmarks03Listener}" />
+      </extensionElements>
+      <multiInstanceLoopCharacteristics activiti:collection="${issuerList}" activiti:elementVariable="issuer">
+        <completionCondition>${multiInstance.completeTask(execution)}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="document_approval_flow03" name="审批通过" sourceRef="document_approval02" targetRef="document_approval03">
+      <extensionElements>
+        <activiti:executionListener event="take" delegateExpression="${approvalOfBookmarksFlow03Listener}" />
+      </extensionElements>
+    </sequenceFlow>
+    <subProcess id="document_approval_signature_subprocess" name="签章子流程">
+      <startEvent id="startevent2" name="签章" />
+      <userTask id="document_approval_signature" name="签章人" activiti:assignee="${signer}" activiti:formKey="approval_of_bookmarks_04">
+        <multiInstanceLoopCharacteristics activiti:collection="${signerList}" activiti:elementVariable="signer">
+          <completionCondition>${multiInstance.completeTask(execution)}</completionCondition>
+        </multiInstanceLoopCharacteristics>
+      </userTask>
+      <sequenceFlow id="document_approval_subProcess_flow01" sourceRef="startevent2" targetRef="document_approval_signature" />
+      <exclusiveGateway id="exclusivegateway1" name="签章结果" />
+      <sequenceFlow id="document_approval_subProcess_flow02" sourceRef="document_approval_signature" targetRef="exclusivegateway1" >
+	    <extensionElements>
+          <activiti:executionListener event="take" delegateExpression="${approvalOfBookSubprocessFlow02Listener}"></activiti:executionListener>
+        </extensionElements>
+	  </sequenceFlow>
+      <endEvent id="endevent1" name="签章结束" />
+      <sequenceFlow id="document_approval_subProcess_flow05" sourceRef="exclusivegateway1" targetRef="endevent1" />
+      <userTask id="document_approval_resign" name="重签章" />
+      <sequenceFlow id="document_approval_subProcess_flow03" sourceRef="exclusivegateway1" targetRef="document_approval_resign" />
+      <sequenceFlow id="document_approval_subProcess_flow04" sourceRef="document_approval_resign" targetRef="document_approval_signature" >
+	    <extensionElements>
+          <activiti:executionListener event="take" delegateExpression="${approvalOfBookSubprocessFlow04Listener}"></activiti:executionListener>
+        </extensionElements>
+	  </sequenceFlow>
+    </subProcess>
+    <sequenceFlow id="document_approval_flow04" name="审批通过" sourceRef="document_approval03" targetRef="document_approval_signature_subprocess">
+      <extensionElements>
+        <activiti:executionListener event="take" delegateExpression="${approvalOfBookmarksFlow04Listener}" />
+      </extensionElements>
+    </sequenceFlow>
+    <userTask id="document_approval04" name="抄送人" >
+	  <extensionElements>
+        <activiti:taskListener event="create" delegateExpression="${carbonCopyListener}"></activiti:taskListener>
+        <activiti:taskListener event="complete" delegateExpression="${carbonCopyListener}"></activiti:taskListener>
+      </extensionElements>
+	</userTask>
+    <sequenceFlow id="document_approval_flow05" sourceRef="document_approval_signature_subprocess" targetRef="document_approval04" />
+    <endEvent id="endevent3" name="End" />
+    <sequenceFlow id="document_approval_flow06" sourceRef="document_approval04" targetRef="endevent3" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_approval_of_bookmarks">
+    <bpmndi:BPMNPlane id="BPMNPlane_approval_of_bookmarks" bpmnElement="approval_of_bookmarks">
+      <bpmndi:BPMNShape id="BPMNShape_startevent1" bpmnElement="startevent1">
+        <omgdc:Bounds x="136" y="91" width="35" height="35" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="137" y="126" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_document_approval01" bpmnElement="document_approval01">
+        <omgdc:Bounds x="346" y="81" width="105" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_document_approval02" bpmnElement="document_approval02">
+        <omgdc:Bounds x="626" y="81" width="105" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_document_approval03" bpmnElement="document_approval03">
+        <omgdc:Bounds x="906" y="81" width="105" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_document_approval_signature_subprocess" bpmnElement="document_approval_signature_subprocess">
+        <omgdc:Bounds x="1186" y="81" width="105" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_startevent2" bpmnElement="startevent2">
+        <omgdc:Bounds x="1259" y="168" width="35" height="35" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1266" y="203" width="22" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_document_approval_signature" bpmnElement="document_approval_signature">
+        <omgdc:Bounds x="1339" y="158" width="105" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_exclusivegateway1" bpmnElement="exclusivegateway1" isMarkerVisible="true">
+        <omgdc:Bounds x="1489" y="166" width="40" height="40" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1487" y="206" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_endevent1" bpmnElement="endevent1">
+        <omgdc:Bounds x="1574" y="169" width="35" height="35" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1570" y="204" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_document_approval_resign" bpmnElement="document_approval_resign">
+        <omgdc:Bounds x="1339" y="246" width="105" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_document_approval04" bpmnElement="document_approval04">
+        <omgdc:Bounds x="1466" y="81" width="105" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_endevent3" bpmnElement="endevent3">
+        <omgdc:Bounds x="1746" y="91" width="35" height="35" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1695" y="126" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_flow01" bpmnElement="document_approval_flow01">
+        <omgdi:waypoint x="171" y="108" />
+        <omgdi:waypoint x="346" y="108" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="186" y="113" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_flow02" bpmnElement="document_approval_flow02">
+        <omgdi:waypoint x="451" y="108" />
+        <omgdi:waypoint x="626" y="108" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="515" y="108" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_flow03" bpmnElement="document_approval_flow03">
+        <omgdi:waypoint x="731" y="108" />
+        <omgdi:waypoint x="906" y="108" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="814" y="108" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_subProcess_flow01" bpmnElement="document_approval_subProcess_flow01">
+        <omgdi:waypoint x="1294" y="185" />
+        <omgdi:waypoint x="1339" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_subProcess_flow02" bpmnElement="document_approval_subProcess_flow02">
+        <omgdi:waypoint x="1444" y="185" />
+        <omgdi:waypoint x="1489" y="186" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_subProcess_flow05" bpmnElement="document_approval_subProcess_flow05">
+        <omgdi:waypoint x="1529" y="186" />
+        <omgdi:waypoint x="1574" y="186" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_subProcess_flow03" bpmnElement="document_approval_subProcess_flow03">
+        <omgdi:waypoint x="1489" y="186" />
+        <omgdi:waypoint x="1318" y="178" />
+        <omgdi:waypoint x="1391" y="246" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_subProcess_flow04" bpmnElement="document_approval_subProcess_flow04">
+        <omgdi:waypoint x="1391" y="246" />
+        <omgdi:waypoint x="1391" y="213" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_flow04" bpmnElement="document_approval_flow04">
+        <omgdi:waypoint x="1011" y="108" />
+        <omgdi:waypoint x="1186" y="108" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1099" y="108" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_flow05" bpmnElement="document_approval_flow05">
+        <omgdi:waypoint x="1291" y="108" />
+        <omgdi:waypoint x="1466" y="108" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_document_approval_flow06" bpmnElement="document_approval_flow06">
+        <omgdi:waypoint x="1571" y="108" />
+        <omgdi:waypoint x="1746" y="108" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

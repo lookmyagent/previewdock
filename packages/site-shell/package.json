@@ -1,0 +1,22 @@
+{
+  "name": "@previewdock/site-shell",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": ["**/*.css"],
+  "exports": {
+    ".": "./src/index.ts",
+    "./style.css": "./src/styles.css"
+  },
+  "scripts": {
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vue": "^3.5.16",
+    "vue-tsc": "^2.2.10"
+  }
+}

@@ -1177,6 +1177,372 @@ defineExpose({ open })
   text-align: center;
 }
 
+.ufv-structured {
+  display: grid;
+  grid-template-rows: 46px minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-height: 380px;
+  overflow: hidden;
+  background: #f4f6fa;
+  color: #253047;
+}
+
+.ufv-structured-toolbar {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 16px;
+  border-bottom: 1px solid #dfe5ed;
+  background: #fff;
+}
+
+.ufv-structured-toolbar strong {
+  overflow: hidden;
+  color: #172033;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ufv-structured-toolbar span {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: #eef4ff;
+  color: #315ee7;
+  font-size: 11px;
+}
+
+.ufv-structured-content {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.ufv-diagram-canvas {
+  box-sizing: border-box;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 28px;
+  overflow: auto;
+  background-color: #f8f9fc;
+  background-image: radial-gradient(#dce2ed 0.8px, transparent 0.8px);
+  background-size: 18px 18px;
+}
+
+.ufv-diagram-canvas svg {
+  display: block;
+  width: 100%;
+  min-height: 480px;
+  margin: 0 auto;
+  filter: drop-shadow(0 10px 22px rgb(30 42 66 / 7%));
+}
+
+.ufv-diagram-node {
+  stroke: #50617e;
+  stroke-width: 1.5;
+  fill: #fff;
+}
+
+.ufv-diagram-node--task {
+  stroke: #7690e9;
+  fill: #f8faff;
+}
+
+.ufv-diagram-node--subprocess {
+  stroke: #8b75ce;
+  stroke-width: 2;
+  fill: #faf8ff;
+}
+
+.ufv-diagram-node--event {
+  stroke: #24a27e;
+  stroke-width: 2;
+  fill: #effbf7;
+}
+
+.ufv-diagram-node--end {
+  stroke: #d95d6d;
+  stroke-width: 3;
+  fill: #fff4f5;
+}
+
+.ufv-diagram-node--gateway {
+  stroke: #d59027;
+  stroke-width: 2;
+  fill: #fff9ec;
+}
+
+.ufv-diagram-edge {
+  stroke: #8491a6;
+  stroke-width: 1.6;
+  fill: none;
+}
+
+.ufv-diagram-edge + defs path,
+.ufv-diagram-canvas marker path {
+  fill: #8491a6;
+}
+
+.ufv-diagram-label {
+  fill: #263044;
+  font: 12px/1.2 Inter, ui-sans-serif, system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.ufv-visio-geometry {
+  stroke: #b7c1d2;
+  stroke-width: 1;
+  fill: #fff;
+}
+
+.ufv-mindmap-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 42%) minmax(360px, 1fr);
+  min-height: 100%;
+  background: #f6f8fc;
+}
+
+.ufv-mindmap-thumbnail {
+  position: sticky;
+  top: 24px;
+  display: block;
+  box-sizing: border-box;
+  width: calc(100% - 48px);
+  max-height: calc(100vh - 190px);
+  margin: 24px;
+  border: 1px solid #dce3ee;
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgb(30 42 66 / 10%);
+  background: #fff;
+  object-fit: contain;
+}
+
+.ufv-mindmap-outline {
+  padding: 24px 28px 60px;
+  border-left: 1px solid #e0e5ee;
+  background: #fff;
+}
+
+.ufv-mindmap-outline h2 {
+  margin: 0 0 18px;
+  color: #172033;
+  font-size: 18px;
+}
+
+.ufv-mindmap-tree,
+.ufv-mindmap-tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ufv-mindmap-node {
+  position: relative;
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.ufv-mindmap-node::before {
+  position: absolute;
+  top: 18px;
+  left: 2px;
+  width: 12px;
+  border-top: 1px solid #a8b6cc;
+  content: '';
+}
+
+.ufv-mindmap-node > span {
+  display: inline-block;
+  padding: 7px 10px;
+  border: 1px solid #d9e1ef;
+  border-radius: 6px;
+  background: #f8faff;
+  color: #33405a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ufv-mindmap-node--depth-0 > span {
+  border-color: #315ee7;
+  background: #315ee7;
+  color: #fff;
+  font-weight: 650;
+}
+
+.ufv-mindmap-node ul {
+  margin-left: 14px;
+  padding-left: 12px;
+  border-left: 1px solid #d9e1ed;
+}
+
+.ufv-email,
+.ufv-reader-page {
+  box-sizing: border-box;
+  width: min(820px, calc(100% - 48px));
+  min-height: calc(100% - 48px);
+  margin: 24px auto;
+  padding: 40px 48px 64px;
+  border: 1px solid #dfe5ee;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(30 42 66 / 7%);
+  color: #2c374c;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.ufv-email h1,
+.ufv-reader-page h1,
+.ufv-reader-page h2,
+.ufv-reader-page h3 {
+  color: #172033;
+  line-height: 1.35;
+}
+
+.ufv-email h1 {
+  margin: 0 0 24px;
+  font-size: 25px;
+}
+
+.ufv-email dl {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 7px 12px;
+  margin: 0 0 28px;
+  padding: 16px 0;
+  border-top: 1px solid #e4e9f1;
+  border-bottom: 1px solid #e4e9f1;
+  font-size: 12px;
+}
+
+.ufv-email dt {
+  color: #7a8598;
+}
+
+.ufv-email dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ufv-email-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ufv-epub {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  min-height: 100%;
+}
+
+.ufv-epub-navigation {
+  box-sizing: border-box;
+  padding: 24px 16px;
+  border-right: 1px solid #dfe5ee;
+  background: #f7f9fc;
+}
+
+.ufv-epub-navigation h2 {
+  margin: 0 0 6px;
+  color: #172033;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.ufv-epub-navigation p {
+  margin: 0 0 20px;
+  color: #778196;
+  font-size: 12px;
+}
+
+.ufv-epub-chapters {
+  display: grid;
+  gap: 3px;
+  max-height: calc(100vh - 250px);
+  overflow: auto;
+}
+
+.ufv-epub-chapters button {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #59667d;
+  cursor: pointer;
+  font: 11px/1.4 inherit;
+  text-align: left;
+}
+
+.ufv-epub-chapters button:hover,
+.ufv-epub-chapters button[aria-pressed="true"] {
+  background: #eaf0ff;
+  color: #315ee7;
+}
+
+.ufv-epub-page {
+  margin-top: 24px;
+}
+
+.ufv-odf-sheets,
+.ufv-odf-slides,
+.ufv-ofd-pages {
+  padding: 24px;
+}
+
+.ufv-odf-sheet {
+  width: max-content;
+  min-width: calc(100% - 48px);
+  margin: 0 0 24px;
+  padding: 20px;
+  border: 1px solid #dfe5ee;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.ufv-odf-sheet h2 {
+  margin: 0 0 14px;
+  font-size: 14px;
+}
+
+.ufv-odf-sheet table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+.ufv-odf-sheet td {
+  min-width: 96px;
+  max-width: 280px;
+  padding: 7px 10px;
+  border: 1px solid #dfe5ee;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  vertical-align: top;
+}
+
+.ufv-ofd-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 620px;
+}
+
+.ufv-ofd-page-number {
+  position: absolute;
+  right: 18px;
+  bottom: 12px;
+  color: #9aa4b5;
+  font-size: 11px;
+}
+
+.ufv-ofd-text {
+  white-space: pre-wrap;
+}
+
 @media (max-width: 720px) {
   .ufv-docx-preview,
   .ufv-pptx-preview {
@@ -1195,6 +1561,30 @@ defineExpose({ open })
 
   .ufv-document-summary {
     margin: -20px -20px 18px;
+  }
+
+  .ufv-mindmap-workspace,
+  .ufv-epub {
+    grid-template-columns: 1fr;
+  }
+
+  .ufv-mindmap-thumbnail {
+    position: static;
+    max-height: 320px;
+  }
+
+  .ufv-mindmap-outline,
+  .ufv-epub-navigation {
+    border-left: 0;
+    border-right: 0;
+    border-top: 1px solid #e0e5ee;
+  }
+
+  .ufv-email,
+  .ufv-reader-page {
+    width: calc(100% - 24px);
+    margin: 12px auto;
+    padding: 28px 22px 48px;
   }
 }
 

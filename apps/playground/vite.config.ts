@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'node:path'
 
 export default defineConfig({
+  base: '/playground/',
   plugins: [vue()],
   server: {
     headers: {
@@ -29,12 +30,14 @@ export default defineConfig({
       '@previewdock/adapter-3d/manifest': resolve(import.meta.dirname, '../../packages/adapter-3d/src/manifest.ts'),
       '@previewdock/adapter-advanced-image/manifest': resolve(import.meta.dirname, '../../packages/adapter-advanced-image/src/manifest.ts'),
       '@previewdock/adapter-legacy-office/manifest': resolve(import.meta.dirname, '../../packages/adapter-legacy-office/src/manifest.ts'),
+      '@previewdock/adapter-structured/manifest': resolve(import.meta.dirname, '../../packages/adapter-structured/src/manifest.ts'),
       '@previewdock/adapter-text': resolve(import.meta.dirname, '../../packages/adapter-text/src/index.ts'),
       '@previewdock/adapter-image': resolve(import.meta.dirname, '../../packages/adapter-image/src/index.ts'),
       '@previewdock/adapter-pdf': resolve(import.meta.dirname, '../../packages/adapter-pdf/src/index.ts'),
       '@previewdock/adapter-media': resolve(import.meta.dirname, '../../packages/adapter-media/src/index.ts'),
       '@previewdock/adapter-archive': resolve(import.meta.dirname, '../../packages/adapter-archive/src/index.ts'),
       '@previewdock/adapter-openxml': resolve(import.meta.dirname, '../../packages/adapter-openxml/src/index.ts'),
+      '@previewdock/adapter-structured': resolve(import.meta.dirname, '../../packages/adapter-structured/src/index.ts'),
       '@previewdock/converter-zetaoffice': resolve(import.meta.dirname, '../../packages/converter-zetaoffice/src/index.ts'),
     },
   },

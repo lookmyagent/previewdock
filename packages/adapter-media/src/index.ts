@@ -43,9 +43,7 @@ export const mediaAdapter: PreviewAdapter = {
         media.controls = true
         media.preload = 'metadata'
         media.src = objectUrl
-        if (media instanceof HTMLVideoElement) {
-          media.playsInline = true
-        }
+        if (media instanceof HTMLVideoElement) media.playsInline = true
         container.replaceChildren(media)
       },
       dispose() {
@@ -60,11 +58,4 @@ export const mediaAdapter: PreviewAdapter = {
       },
     }
   },
-}
-
-export const mediaAdapterManifest = {
-  id: 'media',
-  extensions: [...audioExtensions, ...videoExtensions],
-  mimeTypes: [...audioMimeTypes, ...videoMimeTypes],
-  load: async () => mediaAdapter,
 }

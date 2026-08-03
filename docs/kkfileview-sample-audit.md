@@ -2,12 +2,12 @@
 
 审计目录：`/Users/du/Downloads/kkfileview`
 
-审计时间：2026-07-31
+最近验证：2026-08-03
 
 目录包含 203 个文件、106 种扩展名。这里的“支持”表示已有对应
 适配器，不表示每个损坏文件或格式变体都能成功渲染。
 
-## 当前支持（57 种）
+## 当前支持（92 种）
 
 | 类型 | 扩展名 |
 | --- | --- |
@@ -16,22 +16,23 @@
 | 专业图片 | `tif`, `tiff`, `tga`, `psd` |
 | PDF | `pdf` |
 | 浏览器原生音视频 | `mp3`, `wav`, `ogg`, `mp4`, `webm`, `mov` |
-| 压缩包 | `zip`, `jar`, `tar`, `gzip` |
+| 压缩包 | `zip`, `jar`, `tar`, `gzip`, `rar`, `7z` |
 | OpenXML Office | `docx`, `dotm`, `dotx`, `xlsx`, `xlsm`, `xltm`, `xlam`, `pptx` |
 | 旧版 Excel | `xls`, `xlt`, `xla` |
-| 3D 模型 | `gltf`, `glb`, `obj`, `stl`, `ply`, `fbx`, `dae`, `3ds`, `3mf`, `wrl` |
+| 旧版 Office / WPS | `doc`, `dot`, `ppt`, `wps`, `wpt`, `dps`, `et`, `ett` |
+| OpenDocument / 专用文档 | `odt`, `ods`, `ots`, `odp`, `otp`, `ott`, `fodt`, `fods`, `ofd`, `rtf` |
+| 结构化文档 | `bpmn`, `eml`, `epub`, `xmind`, `vsd`, `vsdx` |
+| Windows 图元 | `wmf`, `emf` |
+| 3D 模型 | `gltf`, `glb`, `obj`, `stl`, `ply`, `fbx`, `dae`, `3ds`, `3mf`, `3dm`, `wrl` |
+| CAD / 工程模型 | `off`, `dxf`, `ifc`, `brep`, `step`, `iges` |
 
-## 当前不支持（49 种）
+## 当前不支持（14 种）
 
 | 原因 | 扩展名 |
 | --- | --- |
-| 旧版 Word/PowerPoint / WPS，需要复杂转换内核 | `doc`, `dot`, `ppt`, `wps`, `wpt`, `dps`, `et`, `ett` |
-| OpenDocument / 专用文档适配器待实现 | `odt`, `ods`, `odp`, `ott`, `ots`, `otp`, `fodt`, `fods`, `six`, `ofd`, `rtf` |
-| 结构化文档适配器待实现 | `bpmn`, `eml`, `epub`, `xmind`, `vsd`, `vsdx` |
-| CAD / BIM，需要大型 WASM 或许可兼容内核 | `3dm`, `bim`, `brep`, `dwg`, `dxf`, `fcstd`, `ifc`, `iges`, `off`, `step` |
+| CAD / BIM，需要许可兼容或格式专用内核 | `bim`, `dwg`, `fcstd` |
 | 浏览器不能稳定原生播放，需要转码 | `3gp`, `avi`, `flv`, `mkv`, `mpeg`, `mpg`, `rm`, `rmvb`, `swf`, `wmv` |
-| 压缩算法适配器待实现 | `7z`, `rar` |
-| Windows 图元解码器待实现 | `wmf`, `emf` |
+| 非标准 / 待确认格式 | `six` |
 
 ## 真实文件验证
 
@@ -41,6 +42,16 @@
   `07_Dark_Dashboard.psd`（1920 × 2004，4 个顶层图层）。
 - 成功：`费用预算查询(月度)_20240328190528.xls`，读取 1 个工作表并在
   只读网格中显示；多工作表文件会生成可切换标签。
+- 成功：BPMN SVG 流程图（12 节点 / 11 连线）、XMind 思维导图（506
+  节点）、VSDX 图形页、2 页 OFD、ODT、EPUB、EML 与 RTF 格式化视图。
+- 成功：WPS 文字转换为 DOCX、ET 读取为工作簿、DPS / VSD / WMF / EMF
+  通过 ZetaOffice Draw/Impress 转为 PDF。
+- 成功：`all.dxf`、`sample.off`、`游戏手柄.STEP`、`ceshi001.iges` 均在
+  浏览器中生成可交互画布；STEP / IGES 使用按需加载的 OpenCascade WASM。
+- 成功：`uploads_files_93987_Motore_Radiale_14_Cilindri.3dm` 通过
+  Rhino3dm / openNURBS WASM 渲染为带材质的交互式模型。
+- 成功：`Duplex.ifc` 通过 Web-IFC WASM 解析几何并渲染为带构件颜色的
+  交互式建筑模型。
 - `left-corners.psd` 的文件头声明为 0-bit channel，系统 `file` 和 PSD
   解析器均判定为异常文件，因此不计作正常 PSD 兼容失败。
 - `generated-3ds.3ds`、`generated-3mf.3mf` 是纯文本占位文件，不是对应

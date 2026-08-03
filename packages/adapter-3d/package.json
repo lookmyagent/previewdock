@@ -3,9 +3,20 @@
   "version": "0.1.0",
   "description": "Browser-side 3D model viewer for PreviewDock",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lookmyagent/previewdock.git",
+    "directory": "packages/adapter-3d"
+  },
+  "homepage": "https://github.com/lookmyagent/previewdock#readme",
+  "bugs": {
+    "url": "https://github.com/lookmyagent/previewdock/issues"
+  },
   "type": "module",
   "sideEffects": false,
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -25,7 +36,11 @@
   },
   "dependencies": {
     "@previewdock/core": "workspace:*",
-    "three": "^0.185.1"
+    "dxf-parser": "1.1.2",
+    "occt-import-js": "0.0.23",
+    "rhino3dm": "8.17.0",
+    "three": "^0.185.1",
+    "web-ifc": "0.0.77"
   },
   "devDependencies": {
     "@types/three": "^0.180.0"

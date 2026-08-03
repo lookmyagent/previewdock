@@ -3,10 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lookmyagent/previewdock.git"
+  },
+  "homepage": "https://github.com/lookmyagent/previewdock#readme",
+  "bugs": {
+    "url": "https://github.com/lookmyagent/previewdock/issues"
+  },
   "packageManager": "pnpm@9.15.9",
   "scripts": {
-    "dev": "pnpm --filter @previewdock/playground dev",
-    "build": "pnpm -r --filter './packages/**' build && pnpm --filter @previewdock/playground build",
+    "dev": "pnpm build:surfaces && pnpm --filter @previewdock/site dev",
+    "dev:docs": "pnpm --filter @previewdock/docs dev",
+    "dev:playground": "pnpm --filter @previewdock/playground dev",
+    "build:surfaces": "pnpm --filter @previewdock/docs build && pnpm --filter @previewdock/playground build",
+    "build": "pnpm -r --filter './packages/**' build && pnpm --filter @previewdock/site build && pnpm run build:surfaces && node scripts/assemble-site.mjs",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -17,6 +29,7 @@
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
+    "vitepress": "^1.6.4",
     "vitest": "^3.2.4",
     "vue": "^3.5.16",
     "vue-tsc": "^2.2.10"

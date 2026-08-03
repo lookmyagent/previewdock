@@ -7,11 +7,16 @@ export function createLegacyOfficeAdapterManifest(
   return {
     id: 'legacy-office',
     priority: 15,
-    extensions: ['doc', 'xls', 'xlt', 'xla', 'ppt'],
+    extensions: [
+      'doc', 'dot', 'xls', 'xlt', 'xla', 'ppt',
+      'wps', 'wpt', 'et', 'ett', 'dps', 'ott', 'otp',
+      'vsd', 'wmf', 'emf',
+    ],
     mimeTypes: [
       'application/msword',
       'application/vnd.ms-excel',
       'application/vnd.ms-powerpoint',
+      'application/vnd.ms-works',
     ],
     load: async () => {
       const office = await import('./index')

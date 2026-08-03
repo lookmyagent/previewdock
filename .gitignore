@@ -1,9 +1,5 @@
-node_modules
-dist
-.vite
-coverage
-*.log
+node_modules/
+dist/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
 .DS_Store
-playwright-report
-test-results
-samples/kkfileview

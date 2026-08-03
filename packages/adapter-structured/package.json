@@ -1,0 +1,25 @@
+{
+  "name": "@previewdock/adapter-structured",
+  "version": "0.1.0",
+  "description": "Structured BPMN, XMind, EPUB, email, ODF, OFD, RTF and VSDX previews for PreviewDock",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/adapter-structured" },
+  "homepage": "https://github.com/lookmyagent/previewdock#readme",
+  "bugs": { "url": "https://github.com/lookmyagent/previewdock/issues" },
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./manifest": { "types": "./dist/manifest.d.ts", "import": "./dist/manifest.js" }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/manifest.ts --format esm --dts --clean --splitting",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@previewdock/core": "workspace:*",
+    "fflate": "^0.8.3"
+  }
+}

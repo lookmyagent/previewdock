@@ -120,11 +120,13 @@ const officeThreadSource = String.raw`
       );
       if (!model) throw new Error('LibreOffice could not open this document');
 
-      if (data.extension === 'doc') forceCjkFont(model);
+      if (data.kind === 'document') forceCjkFont(model);
 
       const filterName = data.target === 'docx'
         ? 'Office Open XML Text'
-        : (data.extension === 'ppt' ? 'impress_pdf_Export' : 'writer_pdf_Export');
+        : (data.kind === 'presentation'
+          ? 'impress_pdf_Export'
+          : (data.kind === 'drawing' ? 'draw_pdf_Export' : 'writer_pdf_Export'));
       model.storeToURL('file://' + data.to, [
         property('Overwrite', true),
         property('FilterName', filterName),
@@ -450,6 +452,7 @@ class ZetaOfficeRuntime {
         from: inputPath,
         to: outputPath,
         extension: request.extension,
+        kind: request.kind,
         target: request.target,
       })
       request.onProgress(82, progressMessage('convert'))

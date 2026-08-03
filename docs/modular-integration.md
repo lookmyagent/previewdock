@@ -1,33 +1,26 @@
-# Modular integration
+# 模块化接入与体积
 
-PreviewDock is published as a small Vue host plus independent format
-adapters. An application should install only the capability groups it needs.
-Import adapter metadata from each package's `/manifest` entry: this entry does
-not load the parser. The parser is downloaded only when the engine detects a
-matching file.
+PreviewDock 由轻量 Vue 宿主和独立格式适配器组成。业务系统只安装需要的能力组，
+从各包的 `/manifest` 入口导入识别元数据；真正的解析器只在文件匹配后下载。
 
-## Capability groups
+## 能力分组
 
-The sizes below are measurements from this workspace. "Install" is unpacked
-dependency size in `node_modules`; "browser resources" is the approximate
-uncompressed code/runtime downloaded when that group is first used. Package
-manager deduplication and production compression will change the final figures.
+以下数据来自当前工作区。安装体积指 `node_modules` 中的未压缩依赖，浏览器资源指首次使用该能力时下载的近似未压缩代码；去重、压缩和缓存会影响最终结果。
 
-| Group | Install these packages | Formats | Approximate cost |
+| 分组 | 安装包 | 格式 | 近似成本 |
 | --- | --- | --- | --- |
-| Host | `core`, `vue` | Framework host and detection | package dist about 68 KB, plus the application's Vue peer |
-| Basic | `adapter-text`, `adapter-image`, `adapter-pdf` | Text/code, MD, CSV/TSV, JSON/XML, common images, SVG, PDF | text dependencies about 2.2 MB installed; roughly 80 KB browser code before compression |
-| Modern Office | `adapter-openxml` | DOCX/DOCM/DOTX/DOTM, XLSX/XLSM/XLTX/XLTM/XLAM, PPTX/PPTM/POTX/POTM/PPSX/PPSM | roughly 1.3 MB browser code, loaded per renderer |
-| Legacy Office | `adapter-legacy-office`; add `converter-zetaoffice` for DOC/PPT | DOC, XLS/XLT/XLA, PPT | SheetJS about 7.8 MB installed; DOC/PPT runtime is an optional cached WASM pack of about 53 MB |
-| Archive | `adapter-archive` | ZIP/JAR/TAR/GZIP/TGZ/RAR/7Z | dependencies about 3.1 MB installed; RAR/7Z worker and WASM about 1.1 MB |
-| Media | `adapter-media` | Browser-native audio/video codecs | no decoder dependency; codecs unsupported by the browser still require an optional transcoder/service |
-| Advanced image | `adapter-advanced-image` | TIFF/TGA/PSD | `ag-psd` about 18 MB and shared Three.js about 25 MB installed |
-| 3D | `adapter-3d` | glTF/GLB/OBJ/STL/PLY/FBX/DAE/3DS/3MF/WRL | Three.js about 25 MB installed; roughly 1.2 MB browser code across lazy chunks |
+| 宿主 | `core`、`vue` | 框架宿主与文件检测 | dist 约 68 KB，另加应用的 Vue peer |
+| 基础 | `adapter-text`、`adapter-image`、`adapter-pdf` | 文本、代码、Markdown、CSV/TSV、JSON/XML、常见图片、SVG、PDF | 浏览器代码约 80 KB |
+| 现代 Office | `adapter-openxml` | DOCX、DOCM、DOTX、XLSX、XLSM、PPTX 等 | 每个渲染器约 1.3 MB |
+| 旧版 Office | `adapter-legacy-office`，DOC/PPT 另加 `converter-zetaoffice` | DOC、XLS/XLT/XLA、PPT | SheetJS 安装约 7.8 MB；DOC/PPT WASM 约 53 MB |
+| 归档 | `adapter-archive` | ZIP、JAR、TAR、GZIP、TGZ、RAR、7Z | Worker 与 WASM 约 1.1 MB |
+| 媒体 | `adapter-media` | 浏览器原生音视频 | 无额外解码器；不支持的编码需转码服务 |
+| 高级图片 | `adapter-advanced-image` | TIFF、TGA、PSD | `ag-psd` 约 18 MB，另有共享 Three.js |
+| 3D | `adapter-3d` | glTF、GLB、OBJ、STL、PLY、FBX、DAE、3DS、3MF、WRL | 懒加载代码约 1.2 MB |
 
-The 16 MB Chinese font in the Playground is a demonstration asset for legacy
-DOC/PPT conversion. It is not part of `core`, `vue`, or an adapter package.
+Playground 中的 16 MB 中文字体只是旧版 DOC/PPT 演示资源，不属于 `core`、`vue` 或普通适配器包。
 
-## Small basic viewer
+## 轻量基础预览
 
 ```bash
 pnpm add vue \
@@ -52,90 +45,60 @@ export const engine = createViewerEngine([
 ])
 ```
 
-The host application then passes this engine to the Vue component. Adding a
-capability does not change the component UI:
+宿主随后把 engine 传给 Vue 组件；增加能力包不会改变组件接入方式：
 
 ```vue
 <PreviewDock :engine="engine" :source="file" :file-name="file.name" />
 ```
 
-## Add an optional archive group
+## 增加归档能力
 
 ```bash
 pnpm add @previewdock/adapter-archive
 ```
 
 ```ts
-import { createArchiveAdapterManifest } from '@previewdock/adapter-archive/manifest'
-
 const archivePack = defineAdapterPack({
   id: 'archive',
   adapters: [createArchiveAdapterManifest({
     workerUrl: '/ufv/libarchive/worker-bundle.js',
-    // Optional: delegate DOCX/XLSX/PPTX/DOC/PSD/3D and other embedded files
-    // to a separate ViewerEngine that shares the host registry.
     previewEntry: openEmbeddedFile,
   })],
 })
 ```
 
-The RAR/7Z worker and `libarchive.wasm` should be copied to the application's
-static asset directory or CDN. The adapter repairs the libarchive.js 2.0.x 7Z
-entry-type issue in memory; a strict CSP must therefore allow `worker-src blob:`.
-Set `patchWorker: false` only when hosting an already repaired worker.
-ZIP/JAR/TAR/GZIP/TGZ do not initialize that runtime.
+RAR/7Z 的 Worker 和 `libarchive.wasm` 应复制到应用静态目录或 CDN。严格 CSP 还需要允许 `worker-src blob:`。
+`previewEntry` 可选；配置后，宿主已经安装的格式也能继续预览归档内文件。
 
-`previewEntry` is optional. Without it, built-in text, image, PDF and media
-files are previewed and every other extracted file remains downloadable. With
-it, the host can create a child `ViewerEngine` using the same registry, so any
-format installed in the host can also be opened from inside an archive without
-closing the archive browser.
+## 现代与旧版 Office 分开接入
 
-## Add modern and legacy Office separately
-
-Modern Office does not need the LibreOffice WASM runtime:
+现代 Office 不需要 LibreOffice WASM：
 
 ```ts
-import { openXmlAdapterManifest } from '@previewdock/adapter-openxml/manifest'
-
 const modernOfficePack = defineAdapterPack({
   id: 'modern-office',
   adapters: [openXmlAdapterManifest],
 })
 ```
 
-Legacy XLS works after installing `adapter-legacy-office`. DOC and PPT require a
-converter, so they remain a separate opt-in path:
+旧版 XLS 可直接解析；DOC 和 PPT 需要单独的转换器，因此是可选路径：
 
 ```ts
-import { createLegacyOfficeAdapterManifest } from '@previewdock/adapter-legacy-office/manifest'
-
 const legacyOfficePack = defineAdapterPack({
   id: 'legacy-office',
   adapters: [createLegacyOfficeAdapterManifest({ converter })],
 })
 ```
 
-See [Legacy Office integration](legacy-office.md) for the ZetaOffice runtime,
-font, caching, and cross-origin isolation requirements.
+## 完整预览器
 
-## Full viewer
-
-There is deliberately no mandatory umbrella dependency. A full viewer is just
-all selected packs passed to `createViewerEngine`:
+没有强制的“大而全”依赖，完整预览器只是将选中的能力包传入 `createViewerEngine`：
 
 ```ts
 const engine = createViewerEngine([
-  basicPack,
-  modernOfficePack,
-  legacyOfficePack,
-  archivePack,
-  mediaPack,
-  advancedImagePack,
-  modelPack,
+  basicPack, modernOfficePack, legacyOfficePack, archivePack,
+  mediaPack, advancedImagePack, modelPack,
 ])
 ```
 
-This keeps the right-drawer integration unchanged while allowing each host
-system to choose its own storage, network, security, and browser-compatibility
-budget.
+这样每个宿主系统都可以独立控制存储、网络、安全、浏览器兼容性和资源预算。

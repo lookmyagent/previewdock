@@ -4,8 +4,15 @@ import type {
   PreviewSession,
 } from '@previewdock/core'
 
-const spreadsheetExtensions = new Set(['xls', 'xlt', 'xla'])
-const convertedExtensions = new Set(['doc', 'ppt'])
+const spreadsheetExtensions = new Set(['xls', 'xlt', 'xla', 'et', 'ett'])
+const documentExtensions = new Set(['doc', 'dot', 'wps', 'wpt', 'ott'])
+const presentationExtensions = new Set(['ppt', 'dps', 'otp'])
+const drawingExtensions = new Set(['vsd', 'wmf', 'emf'])
+const convertedExtensions = new Set([
+  ...documentExtensions,
+  ...presentationExtensions,
+  ...drawingExtensions,
+])
 const allExtensions = new Set([
   ...spreadsheetExtensions,
   ...convertedExtensions,
@@ -18,7 +25,8 @@ const MAX_COLUMNS = 100
 export interface LegacyOfficeConversionRequest {
   blob: Blob
   name: string
-  extension: 'doc' | 'ppt'
+  extension: string
+  kind: 'document' | 'presentation' | 'drawing'
   target: 'docx' | 'pdf'
   signal: AbortSignal
   onProgress: (progress: number, message?: string) => void
@@ -236,7 +244,10 @@ async function openConvertedDocument(
   }
   let root: HTMLElement | undefined
   let objectUrl: string | undefined
-  const target = file.extension === 'doc' ? 'docx' : 'pdf'
+  const kind = documentExtensions.has(file.extension)
+    ? 'document'
+    : presentationExtensions.has(file.extension) ? 'presentation' : 'drawing'
+  const target = kind === 'document' ? 'docx' : 'pdf'
   return {
     adapterId: 'legacy-office',
     adapterLabel: `Legacy Office via ${converter.id}`,
@@ -268,7 +279,8 @@ async function openConvertedDocument(
       const converted = await converter.convert({
         blob: file.blob,
         name: file.name,
-        extension: file.extension as 'doc' | 'ppt',
+        extension: file.extension,
+        kind,
         target,
         signal,
         onProgress: updateMessage,
@@ -350,6 +362,8 @@ export const legacyOfficeAdapterManifest = {
     'application/msword',
     'application/vnd.ms-excel',
     'application/vnd.ms-powerpoint',
+    'application/vnd.ms-works',
+    'application/vnd.ms-wpl',
   ],
   load: async () => legacyOfficeAdapter,
 }

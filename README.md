@@ -2,6 +2,8 @@
 
 A local-first, framework-agnostic file preview runtime for the browser.
 
+[Documentation](./docs/index.md) · [Online playground](./apps/playground) · [Issues](https://github.com/lookmyagent/previewdock/issues) · [Releases](https://github.com/lookmyagent/previewdock/releases)
+
 The project is organized around lazily loaded format adapters. Opening a text
 file does not download Office, CAD, archive, or media engines. Heavy parsers can
 run in dedicated Web Workers or WebAssembly runtimes while the UI stays
@@ -36,6 +38,19 @@ responsive.
 pnpm install
 pnpm dev
 ```
+
+The workspace exposes three separate product surfaces so the public portal does
+not bundle the full preview playground:
+
+```bash
+pnpm dev             # product portal
+pnpm dev:docs        # documentation
+pnpm dev:playground  # full-capability file preview playground
+```
+
+GitHub is the primary source repository. A Gitee mirror can be enabled later by
+setting `gitee` in [`config/project.ts`](config/project.ts); empty repository
+links are intentionally not rendered.
 
 Build and test everything:
 
@@ -82,6 +97,11 @@ measured size estimates, archive worker setup, and selective Office support.
 - Legacy XLS/XLT/XLA workbooks through a lazily loaded SheetJS adapter
 - Pure-browser DOC/PPT-to-PDF conversion through an on-demand ZetaOffice WASM
   pack; the original file never leaves the browser
+- WPS/WPT documents, ET/ETT workbooks, DPS presentations, VSD drawings, and
+  WMF/EMF metafiles through the same lazy Office conversion pack
+- Structured ODF, OFD, RTF, EPUB, EML, XMind, BPMN, and VSDX previews
+- Interactive OFF/DXF, Rhino3dm/openNURBS 3DM, Web-IFC building models, plus
+  OpenCascade-WASM STEP/IGES/BREP previews
 - Simplified text/data fallback for malformed or partially supported OpenXML files
 - DOCX/DOCM/DOTX/DOTM, XLSX/XLSM/XLTX/XLTM/XLAM, and
   PPTX/PPTM/POTX/POTM/PPSX/PPSM are routed through the Office adapter
@@ -90,9 +110,9 @@ measured size estimates, archive worker setup, and selective Office support.
 ## Roadmap
 
 - Phase 1: harden text, images, PDF, OpenXML Office, audio/video and archives
-- Phase 2: EPUB, BPMN, XMind, EML and OpenDocument formats
-- Phase 3: DWG/DXF and OpenCascade-based CAD formats
-- Phase 4: browser-side Office and media conversion through optional WASM packs
+- Phase 2: harden structured document renderers and accessibility
+- Phase 3: evaluate legally compatible DWG/IFC/3DM/FCSTD import
+- Phase 4: browser-side transcoding for non-native media codecs
 
 Support levels will be published as `stable`, `beta`, `experimental`, or
 `fallback`; an extension will never be advertised as fully supported solely
