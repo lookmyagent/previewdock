@@ -1,7 +1,20 @@
 # 模块化接入与体积
 
-PreviewDock 由轻量 Vue 宿主和独立格式适配器组成。业务系统只安装需要的能力组，
-从各包的 `/manifest` 入口导入识别元数据；真正的解析器只在文件匹配后下载。
+PreviewDock 同时提供两条接入路径：多数系统使用 `@previewdock/preset-all` 一次注册全部格式；对依赖体积或许可有严格要求的系统，按本页选择独立适配器。两种路径都按格式延迟加载解析器。
+
+## 官方全格式预设
+
+```bash
+pnpm add vue @previewdock/vue @previewdock/preset-all
+```
+
+```ts
+import { createAllFormatEngine } from '@previewdock/preset-all'
+
+export const engine = createAllFormatEngine()
+```
+
+这会安装所有官方适配器依赖，但不会把所有解析器打进首屏。RAR / 7Z、CAD 和旧版 DOC / PPT 仍需传入运行时资源配置，详见[部署 Worker / WASM](/deployment)。
 
 ## 能力分组
 
@@ -90,9 +103,9 @@ const legacyOfficePack = defineAdapterPack({
 })
 ```
 
-## 完整预览器
+## 手工组合完整预览器
 
-没有强制的“大而全”依赖，完整预览器只是将选中的能力包传入 `createViewerEngine`：
+不使用官方预设时，也可以手工组合选中的能力包：
 
 ```ts
 const engine = createViewerEngine([
@@ -101,4 +114,4 @@ const engine = createViewerEngine([
 ])
 ```
 
-这样每个宿主系统都可以独立控制存储、网络、安全、浏览器兼容性和资源预算。
+两条路径使用相同 Engine 和 Vue 组件。预设优化接入效率，手工组合优化安装依赖；宿主系统始终负责存储、网络、安全、浏览器兼容性和资源预算。

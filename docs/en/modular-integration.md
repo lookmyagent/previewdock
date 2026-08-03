@@ -1,6 +1,20 @@
 # Modular integration and size
 
-PreviewDock is a small Vue host plus independent format adapters. Install only the capability groups your product exposes. Import metadata from each package's `/manifest` entry; the parser is downloaded only after a matching file is detected.
+PreviewDock has two integration paths. Most applications can register every maintained format with `@previewdock/preset-all`; products with strict dependency or licensing budgets can select individual adapters. Both paths lazy-load parsers by format.
+
+## Official all-format preset
+
+```bash
+pnpm add vue @previewdock/vue @previewdock/preset-all
+```
+
+```ts
+import { createAllFormatEngine } from '@previewdock/preset-all'
+
+export const engine = createAllFormatEngine()
+```
+
+This installs all official adapter dependencies without putting every parser on the initial page load. RAR/7Z, engineering CAD, and legacy DOC/PPT still need runtime asset configuration; see [Worker and WASM deployment](/en/deployment).
 
 ## Capability groups
 
@@ -42,4 +56,4 @@ const modernOfficePack = defineAdapterPack({
 })
 ```
 
-Legacy XLS is parsed in the browser. DOC and PPT use the separate opt-in converter path. There is no mandatory umbrella dependency; pass only the selected packs to `createViewerEngine`.
+Legacy XLS is parsed in the browser. DOC and PPT use the separate opt-in converter path. The preset is the convenience default; manual packs remain available when the application should install only selected adapters.

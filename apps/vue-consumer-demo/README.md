@@ -9,30 +9,22 @@ pnpm install
 pnpm --filter @previewdock/vue-consumer-demo dev
 ```
 
-打开终端显示的本地地址。页面会先加载一个内置 Markdown 文件；也可以选择本地文本或图片文件。
+打开终端显示的本地地址。文件选择器不限制格式；页面会先加载一个内置 Markdown 文件。当前 demo 使用官方全格式预设，复杂格式的解析器仍按需加载。
 
 ## 在另一个 Vue 项目中使用
 
 正式包发布后，在你的 Vue 项目执行：
 
 ```bash
-pnpm add vue @previewdock/core @previewdock/vue \
-  @previewdock/adapter-text @previewdock/adapter-image
+pnpm add vue @previewdock/vue @previewdock/preset-all
 ```
 
 创建 `src/preview-engine.ts`：
 
 ```ts
-import { createViewerEngine, defineAdapterPack } from '@previewdock/core'
-import { textAdapterManifest } from '@previewdock/adapter-text/manifest'
-import { imageAdapterManifest } from '@previewdock/adapter-image/manifest'
+import { createAllFormatEngine } from '@previewdock/preset-all'
 
-export const previewEngine = createViewerEngine([
-  defineAdapterPack({
-    id: 'common-files',
-    adapters: [textAdapterManifest, imageAdapterManifest],
-  }),
-])
+export const previewEngine = createAllFormatEngine()
 ```
 
 然后在任意 Vue 页面使用组件：
@@ -55,4 +47,4 @@ const file = ref<File | null>(null)
 </template>
 ```
 
-`PreviewDock` 的父容器必须有明确高度。按需增加其它 adapter manifest，即可扩展 PDF、Office、压缩包等预览能力。
+`PreviewDock` 的父容器必须有明确高度。RAR / 7Z、CAD 和旧版 DOC / PPT 还需要配置对应 Worker、WASM 或转换器；只想安装部分格式时，可以改用独立 adapter manifest。

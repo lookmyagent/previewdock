@@ -38,6 +38,7 @@
       "@previewdock/adapter-structured/manifest": ["packages/adapter-structured/src/manifest.ts"],
       "@previewdock/adapter-structured/*": ["packages/adapter-structured/src/*"],
       "@previewdock/converter-zetaoffice": ["packages/converter-zetaoffice/src/index.ts"],
+      "@previewdock/preset-all": ["packages/preset-all/src/index.ts"],
       "@previewdock/vue": ["packages/vue/src/index.ts"]
     },
     "strict": true,

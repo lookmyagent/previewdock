@@ -1,3 +1,5 @@
+/// <reference path="./occt-import-js.d.ts" />
+
 import type {
   FileDescriptor,
   PreviewAdapter,

@@ -61,6 +61,7 @@ export default defineConfig({
   title: 'PreviewDock',
   description: '本地优先、按需加载的浏览器文件预览运行时',
   base: '/docs/',
+  appearance: false,
   cleanUrls: true,
   lastUpdated: true,
   head: [

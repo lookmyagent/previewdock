@@ -1,35 +1,22 @@
 # PreviewDock integration guide
 
-PreviewDock is a local-first, lazy-loaded browser file preview runtime. Install only the capability packs your product needs; the matching parser loads when a file is opened.
+PreviewDock is a local-first, lazy-loaded browser file preview runtime. Start with the official all-format preset; each parser still loads only after a matching file is opened.
 
 ## Quick integration
 
-For a lightweight Vue viewer:
+After the first npm release, the default installation is:
 
 ```bash
-pnpm add vue \
-  @previewdock/core \
-  @previewdock/vue \
-  @previewdock/adapter-text \
-  @previewdock/adapter-image \
-  @previewdock/adapter-pdf
+pnpm add vue @previewdock/vue @previewdock/preset-all
 ```
 
 ```ts
-import { createViewerEngine, defineAdapterPack } from '@previewdock/core'
-import { textAdapterManifest } from '@previewdock/adapter-text/manifest'
-import { imageAdapterManifest } from '@previewdock/adapter-image/manifest'
-import { pdfAdapterManifest } from '@previewdock/adapter-pdf/manifest'
+import { createAllFormatEngine } from '@previewdock/preset-all'
 
-const engine = createViewerEngine([
-  defineAdapterPack({
-    id: 'basic',
-    adapters: [textAdapterManifest, imageAdapterManifest, pdfAdapterManifest],
-  }),
-])
+const engine = createAllFormatEngine()
 ```
 
-Manifests contain matching metadata and lazy entry points. Registering a manifest does not download its parser.
+The preset registers lightweight manifests; it does not download every parser on first load. Choose [modular integration](/en/modular-integration) when install dependencies must be tightly controlled. Packages are publish-ready but have not completed their first npm release yet; repository workspaces can consume them now.
 
 ## Choose capability packs by scenario
 

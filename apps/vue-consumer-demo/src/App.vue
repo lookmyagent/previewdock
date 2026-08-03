@@ -37,11 +37,11 @@ function restoreExample() {
       <h1>在一个 Vue 3 项目中接入文件预览</h1>
       <p>此页面是一个独立的消费端 demo：应用创建 Engine，然后将文件和 Engine 传给 <code>&lt;PreviewDock&gt;</code>。</p>
       <div class="actions">
-        <input ref="fileInput" class="visually-hidden" type="file" accept="text/*,.md,.csv,.json,image/*" @change="handleFile">
+        <input ref="fileInput" class="visually-hidden" type="file" @change="handleFile">
         <button class="primary" type="button" @click="chooseFile">选择文件</button>
         <button class="secondary" type="button" @click="restoreExample">恢复文本示例</button>
       </div>
-      <p class="hint">已启用：TXT、MD、CSV、JSON、常见图片。当前文件：<strong>{{ selectedName }}</strong></p>
+      <p class="hint">文件选择不限制格式；当前已注册文本、图片和浏览器原生音视频预览。当前文件：<strong>{{ selectedName }}</strong></p>
     </section>
 
     <section class="preview-frame" aria-label="文件预览">

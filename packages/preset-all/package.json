@@ -1,0 +1,53 @@
+{
+  "name": "@previewdock/preset-all",
+  "version": "0.1.0",
+  "description": "Official all-format lazy adapter preset for PreviewDock",
+  "keywords": [
+    "previewdock",
+    "file-preview",
+    "vue",
+    "office",
+    "pdf"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lookmyagent/previewdock.git",
+    "directory": "packages/preset-all"
+  },
+  "homepage": "https://github.com/lookmyagent/previewdock#readme",
+  "bugs": {
+    "url": "https://github.com/lookmyagent/previewdock/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --splitting",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@previewdock/adapter-3d": "workspace:*",
+    "@previewdock/adapter-advanced-image": "workspace:*",
+    "@previewdock/adapter-archive": "workspace:*",
+    "@previewdock/adapter-image": "workspace:*",
+    "@previewdock/adapter-legacy-office": "workspace:*",
+    "@previewdock/adapter-media": "workspace:*",
+    "@previewdock/adapter-openxml": "workspace:*",
+    "@previewdock/adapter-pdf": "workspace:*",
+    "@previewdock/adapter-structured": "workspace:*",
+    "@previewdock/adapter-text": "workspace:*",
+    "@previewdock/core": "workspace:*"
+  }
+}

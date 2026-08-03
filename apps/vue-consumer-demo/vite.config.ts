@@ -10,8 +10,7 @@ export default defineConfig({
     alias: {
       '@previewdock/core': resolve(import.meta.dirname, '../../packages/core/src/index.ts'),
       '@previewdock/vue': resolve(import.meta.dirname, '../../packages/vue/src/index.ts'),
-      '@previewdock/adapter-text/manifest': resolve(import.meta.dirname, '../../packages/adapter-text/src/manifest.ts'),
-      '@previewdock/adapter-image/manifest': resolve(import.meta.dirname, '../../packages/adapter-image/src/manifest.ts'),
+      '@previewdock/preset-all': resolve(import.meta.dirname, '../../packages/preset-all/src/index.ts'),
     },
   },
 })

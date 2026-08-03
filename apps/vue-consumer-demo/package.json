@@ -9,9 +9,7 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@previewdock/adapter-image": "workspace:*",
-    "@previewdock/adapter-text": "workspace:*",
-    "@previewdock/core": "workspace:*",
+    "@previewdock/preset-all": "workspace:*",
     "@previewdock/vue": "workspace:*",
     "vue": "^3.5.16"
   },

@@ -2,6 +2,20 @@
 
 Text, images, PDF, and native browser media need no extra runtime. RAR, 7Z, legacy Office/WPS, and STEP/IGES/BREP require Worker, WASM, or font assets.
 
+Pass all runtime locations through the official preset when it is used:
+
+```ts
+const engine = createAllFormatEngine({
+  archive: { workerUrl: '/previewdock/libarchive/worker-bundle.js' },
+  model: {
+    occtWasmUrl: '/previewdock/occt/occt-import-js.wasm',
+    rhinoLibraryPath: '/previewdock/rhino/',
+    ifcWasmPath: '/previewdock/ifc/',
+  },
+  legacyOffice: { converter },
+})
+```
+
 ## Archive
 
 RAR/7Z use the `libarchive.js` Worker and `libarchive.wasm`. Copy them to the application static directory or CDN and pass the Worker URL through the manifest:

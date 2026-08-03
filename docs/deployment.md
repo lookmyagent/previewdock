@@ -2,6 +2,20 @@
 
 基础文本、图片、PDF 和浏览器原生媒体不需要额外运行时。RAR、7Z、旧版 Office / WPS 与 STEP / IGES / BREP 需要单独部署 Worker、WASM 或字体资源。
 
+使用官方预设时，把这些地址一次传给 Engine：
+
+```ts
+const engine = createAllFormatEngine({
+  archive: { workerUrl: '/previewdock/libarchive/worker-bundle.js' },
+  model: {
+    occtWasmUrl: '/previewdock/occt/occt-import-js.wasm',
+    rhinoLibraryPath: '/previewdock/rhino/',
+    ifcWasmPath: '/previewdock/ifc/',
+  },
+  legacyOffice: { converter },
+})
+```
+
 ## Archive
 
 RAR/7Z 使用 `libarchive.js` Worker 和 `libarchive.wasm`。将资源复制到应用静态目录或 CDN，并通过 Manifest 传入地址：

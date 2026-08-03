@@ -1,36 +1,23 @@
 # 快速开始
 
-本页构建一个只包含文本、图片和 PDF 的轻量 Vue 预览器。PreviewDock 尚处于 Early Preview；npm 正式发布前，可从仓库 workspace 运行示例。
+本页使用官方全格式预设构建 Vue 预览器。PreviewDock 尚处于 Early Preview；npm 正式发布前，可从仓库 workspace 运行示例。
 
 ## 安装
 
-正式包发布后，基础组合的安装方式为：
+正式包发布后：
 
 ```bash
-pnpm add vue \
-  @previewdock/core \
-  @previewdock/vue \
-  @previewdock/adapter-text \
-  @previewdock/adapter-image \
-  @previewdock/adapter-pdf
+pnpm add vue @previewdock/vue @previewdock/preset-all
 ```
 
 ## 创建 Engine
 
-Manifest 只包含匹配信息和动态加载入口，不会立即下载解析器。
+预设只注册轻量 Manifest，解析器仍在匹配到文件后动态加载。
 
 ```ts
-import { createViewerEngine, defineAdapterPack } from '@previewdock/core'
-import { textAdapterManifest } from '@previewdock/adapter-text/manifest'
-import { imageAdapterManifest } from '@previewdock/adapter-image/manifest'
-import { pdfAdapterManifest } from '@previewdock/adapter-pdf/manifest'
+import { createAllFormatEngine } from '@previewdock/preset-all'
 
-export const engine = createViewerEngine([
-  defineAdapterPack({
-    id: 'basic',
-    adapters: [textAdapterManifest, imageAdapterManifest, pdfAdapterManifest],
-  }),
-])
+export const engine = createAllFormatEngine()
 ```
 
 ## 挂载 Vue 组件
@@ -53,6 +40,6 @@ const file = ref<File>()
 
 ## 下一步
 
-- 添加 DOCX、XLSX 和 PPTX：阅读[模块化接入](/modular-integration#add-modern-and-legacy-office-separately)。
-- 添加压缩包：阅读[Archive 能力组](/modular-integration#add-an-optional-archive-group)。
+- 配置 RAR / 7Z、CAD 和旧版 DOC / PPT：阅读 [Worker 与 WASM 部署](/deployment)。
+- 只安装部分格式：阅读[模块化接入](/modular-integration)。
 - 查看所有格式的实际状态：阅读[格式支持矩阵](/format-support)。

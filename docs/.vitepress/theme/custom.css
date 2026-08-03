@@ -1,17 +1,38 @@
 .previewdock-docs-shell {
-  --vp-nav-height: 64px;
+  --vp-nav-height: 72px;
 }
+
+.previewdock-docs-shell .site-header {
+  height: 72px;
+  padding-inline: max(30px, calc((100vw - 1400px) / 2));
+  border-bottom-color: #e3e8f1;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 10px 32px rgba(43, 61, 94, .06);
+  backdrop-filter: blur(22px) saturate(130%);
+}
+.previewdock-docs-shell .site-brand { gap: 11px; color: #14213a; }
+.previewdock-docs-shell .site-brand__mark { position: relative; width: 36px; height: 36px; overflow: hidden; border: 1px solid rgba(58,112,235,.42); border-radius: 9px; background: linear-gradient(145deg,#55a7ff,#2d6cec 55%,#7257ee); box-shadow: inset 0 1px 0 rgba(255,255,255,.42),0 8px 24px rgba(39,93,214,.18); }
+.previewdock-docs-shell .site-brand__mark::after { position: absolute; inset: 5px 12px; border: 1px solid rgba(255,255,255,.78); transform: skewY(-28deg); content: ''; }
+.previewdock-docs-shell .site-brand__name { font-size: 16px; letter-spacing: -.035em; }
+.previewdock-docs-shell .site-header__nav { gap: 34px; }
+.previewdock-docs-shell .site-header__nav a { color: #657187; font-size: 13px; font-weight: 650; }
+.previewdock-docs-shell .site-header__nav a:hover,
+.previewdock-docs-shell .site-header__nav a.is-active { color: #245de8; }
+.previewdock-docs-shell .site-header__nav a.is-active::after { height: 3px; background: linear-gradient(90deg,#2584ff,#6f62ff); box-shadow: 0 0 12px rgba(42,126,255,.28); }
+.previewdock-docs-shell .site-header__repo { color: #344157; font-size: 12px; }
+.previewdock-docs-shell .site-header__repo:hover { color: #245de8; }
+.previewdock-docs-shell .site-header__locale { padding: 7px 10px; border-color: #d5dce8; color: #536078; }
 
 .previewdock-docs-shell .VPNav {
   display: none !important;
 }
 
 .previewdock-docs-shell .VPContent {
-  padding-top: 64px !important;
+  padding-top: 72px !important;
 }
 
 .previewdock-docs-shell .VPSidebar {
-  padding-top: 88px !important;
+  padding-top: 96px !important;
 }
 
 .previewdock-docs-shell .VPFooter {
@@ -24,6 +45,8 @@
 }
 
 @media (max-width: 760px) {
+  .previewdock-docs-shell .site-header { height: 64px; padding-inline: 16px; }
+
   .previewdock-docs-shell .VPSidebar {
     padding-top: 76px !important;
   }

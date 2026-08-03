@@ -1,37 +1,24 @@
 # PreviewDock 接入文档
 
-PreviewDock 是一个本地优先、按需加载的浏览器文件预览运行时。接入时只安装业务需要的能力包；文件命中某种格式后，才加载对应解析器。
+PreviewDock 是一个本地优先、按需加载的浏览器文件预览运行时。推荐先使用官方全格式预设完成接入；文件命中某种格式后，才加载对应解析器。
 
 ## 快速接入
 
-轻量 Vue 预览器只需要核心、Vue 宿主和基础适配器：
+正式发布到 npm 后，默认只需安装 Vue 宿主和官方全格式预设：
 
 ```bash
-pnpm add vue \
-  @previewdock/core \
-  @previewdock/vue \
-  @previewdock/adapter-text \
-  @previewdock/adapter-image \
-  @previewdock/adapter-pdf
+pnpm add vue @previewdock/vue @previewdock/preset-all
 ```
 
-创建 Engine，并通过 Manifest 注册需要的格式：
+创建 Engine：
 
 ```ts
-import { createViewerEngine, defineAdapterPack } from '@previewdock/core'
-import { textAdapterManifest } from '@previewdock/adapter-text/manifest'
-import { imageAdapterManifest } from '@previewdock/adapter-image/manifest'
-import { pdfAdapterManifest } from '@previewdock/adapter-pdf/manifest'
+import { createAllFormatEngine } from '@previewdock/preset-all'
 
-const engine = createViewerEngine([
-  defineAdapterPack({
-    id: 'basic',
-    adapters: [textAdapterManifest, imageAdapterManifest, pdfAdapterManifest],
-  }),
-])
+const engine = createAllFormatEngine()
 ```
 
-Manifest 只包含识别信息和动态加载入口，不会在注册时下载解析器。
+全格式预设只统一注册 Manifest，不会在首屏下载全部解析器。需要严格控制安装依赖时，可继续按适配器[模块化接入](/modular-integration)。当前包已具备发布配置，但尚未完成 npm 首次发布；仓库内可通过 workspace 直接使用。
 
 ## 按场景选择能力
 

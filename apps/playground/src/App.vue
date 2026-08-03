@@ -226,9 +226,9 @@
           <div class="code-window__bar"><span><i></i><i></i><i></i></span><strong>Viewer.vue</strong><button type="button" @click="copyIntegrationCode">{{ codeCopied ? marketing.copied : marketing.copy }}</button></div>
           <pre><code><span class="code-muted">&lt;script setup lang="ts"&gt;</span>
 <span class="code-purple">import</span> { PreviewDock } <span class="code-purple">from</span> <span class="code-green">'@previewdock/vue'</span>
-<span class="code-purple">import</span> { createViewerEngine } <span class="code-purple">from</span> <span class="code-green">'@previewdock/core'</span>
+<span class="code-purple">import</span> { createAllFormatEngine } <span class="code-purple">from</span> <span class="code-green">'@previewdock/preset-all'</span>
 
-<span class="code-purple">const</span> engine = createViewerEngine([basicPack, officePack])
+<span class="code-purple">const</span> engine = createAllFormatEngine()
 <span class="code-muted">&lt;/script&gt;</span>
 
 <span class="code-muted">&lt;template&gt;</span>
@@ -361,24 +361,13 @@
 <script setup lang="ts">
 import { computed, defineComponent, h, ref, watch } from 'vue'
 import {
-  createViewerEngine,
-  defineAdapterPack,
   ViewerEngine,
   type FileSource,
   type OpenResult,
   type PreviewCapability,
   type ViewerStatus,
 } from '@previewdock/core'
-import { textAdapterManifest } from '@previewdock/adapter-text/manifest'
-import { imageAdapterManifest } from '@previewdock/adapter-image/manifest'
-import { pdfAdapterManifest } from '@previewdock/adapter-pdf/manifest'
-import { mediaAdapterManifest } from '@previewdock/adapter-media/manifest'
-import { advancedImageAdapterManifest } from '@previewdock/adapter-advanced-image/manifest'
-import { createModelAdapterManifest } from '@previewdock/adapter-3d/manifest'
-import { openXmlAdapterManifest } from '@previewdock/adapter-openxml/manifest'
-import { createArchiveAdapterManifest } from '@previewdock/adapter-archive/manifest'
-import { createLegacyOfficeAdapterManifest } from '@previewdock/adapter-legacy-office/manifest'
-import { structuredAdapterManifest } from '@previewdock/adapter-structured/manifest'
+import { createAllFormatEngine } from '@previewdock/preset-all'
 import { PreviewDock, viewerMessages, type ViewerLocale } from '@previewdock/vue'
 import { strToU8, zipSync } from 'fflate'
 import { getSiteLocale, setSiteLocale, SiteHeader } from '@previewdock/site-shell'
@@ -600,9 +589,9 @@ const marketing = computed(() => {
 
 const integrationCode = `<script setup lang="ts">
 import { PreviewDock } from '@previewdock/vue'
-import { createViewerEngine } from '@previewdock/core'
+import { createAllFormatEngine } from '@previewdock/preset-all'
 
-const engine = createViewerEngine([basicPack, officePack])
+const engine = createAllFormatEngine()
 <${'/'}script>
 
 <template>
@@ -645,28 +634,10 @@ const InspectorItem = defineComponent({
   },
 })
 
-const basicPack = defineAdapterPack({
-  id: 'basic',
-  label: 'Text, common images and PDF',
-  adapters: [textAdapterManifest, imageAdapterManifest, pdfAdapterManifest],
-})
+let engine: ViewerEngine
 
-const richImagePack = defineAdapterPack({
-  id: 'rich-image',
-  label: 'TIFF, TGA and PSD',
-  adapters: [advancedImageAdapterManifest],
-})
-
-const mediaPack = defineAdapterPack({
-  id: 'media',
-  label: 'Browser-native audio and video',
-  adapters: [mediaAdapterManifest],
-})
-
-const archivePack = defineAdapterPack({
-  id: 'archive',
-  label: 'ZIP, JAR, TAR, GZIP, RAR and 7Z',
-  adapters: [createArchiveAdapterManifest({
+engine = createAllFormatEngine({
+  archive: {
     workerUrl: `${assetBase}libarchive/worker-bundle.js`,
     async previewEntry({ file, container, signal }) {
       if (signal.aborted) throw new DOMException('Preview was cancelled', 'AbortError')
@@ -693,28 +664,16 @@ const archivePack = defineAdapterPack({
         throw error
       }
     },
-  })],
-})
-
-const modelPack = defineAdapterPack({
-  id: 'model-3d',
-  label: 'Interactive 3D models',
-  adapters: [createModelAdapterManifest({
+  },
+  model: {
     occtWasmUrl: `${assetBase}occt/occt-import-js.wasm`,
     rhinoLibraryPath: `${assetBase}rhino/`,
     ifcWasmPath: `${assetBase}ifc/`,
-  })],
-})
-
-const officePack = defineAdapterPack({
-  id: 'office',
-  label: 'Modern and legacy Microsoft Office',
-  adapters: [
-    openXmlAdapterManifest,
-    createLegacyOfficeAdapterManifest({
-      converter: {
-        id: 'zetaoffice-wasm',
-        async convert(request) {
+  },
+  legacyOffice: {
+    converter: {
+      id: 'zetaoffice-wasm',
+      async convert(request) {
         const { createZetaOfficeConverter } = await import(
           '@previewdock/converter-zetaoffice'
         )
@@ -726,16 +685,9 @@ const officePack = defineAdapterPack({
           zetaJsUrl,
           fontFiles: fonts,
         }).convert(request)
-        },
       },
-    }),
-  ],
-})
-
-const structuredPack = defineAdapterPack({
-  id: 'structured-documents',
-  label: 'BPMN, XMind, EPUB, email, ODF, OFD and Visio',
-  adapters: [structuredAdapterManifest],
+    },
+  },
 })
 
 let chineseOfficeFontPromise: Promise<Array<{ name: string, data: ArrayBuffer }>> | undefined
@@ -748,15 +700,6 @@ function loadChineseOfficeFont(): Promise<Array<{ name: string, data: ArrayBuffe
   }
   return chineseOfficeFontPromise
 }
-const engine: ViewerEngine = createViewerEngine([
-  basicPack,
-  richImagePack,
-  mediaPack,
-  archivePack,
-  modelPack,
-  officePack,
-  structuredPack,
-])
 const fileInputRef = ref<HTMLInputElement>()
 const query = ref('')
 const detectionMode = ref('auto')
