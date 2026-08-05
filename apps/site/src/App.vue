@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { formatCategories } from '@previewdock/core'
 import { getLocalizedPath, getSiteLocale, setSiteLocale, type SiteLocale, SiteFooter, SiteHeader } from '@previewdock/site-shell'
 import '@previewdock/site-shell/style.css'
 import { projectLinks } from '../../../config/project'
@@ -47,11 +48,13 @@ const copy = computed(() => locale.value === 'en' ? {
   architectureTitle: 'Three steps from selection to preview', architectureDescription: 'Choose the coverage, connect the component, and give users one consistent preview experience.', architectureLink: 'View product usage',
   steps: [
     { no: '01', title: 'Choose coverage', text: 'Use All mode or select business categories', marks: ['ALL', 'DOC', 'IMG', '3D'] },
-    { no: '02', title: 'Connect PreviewDock', text: 'Pass a local file, binary data, or an authorized URL', marks: ['VUE'] },
+    { no: '02', title: 'Connect PreviewDock', text: 'Pass a local file, binary data, or an authorized URL', marks: ['VUE 3', 'VUE 2', 'REACT', 'WEB'] },
     { no: '03', title: 'Open and preview', text: 'Use one consistent interface across file families', marks: ['Docs', 'Images', 'Media', 'Models'] },
   ],
   formatTitle: 'Seven categories. One predictable runtime.', formatDescription: 'See the actual document, data, archive, image, media, diagram, and model types available to your product.', formatLink: 'View category and format details',
-  integrationTitle: 'Choose All mode or category mode', integrationDescription: 'Both modes use the same Vue component and lazy-loading engine. The difference is whether all categories or only selected categories are installed.',
+  integrationTitle: 'Choose All mode or category mode', integrationDescription: 'Every framework uses the same engine and lazy adapters. The difference is whether all categories or only selected categories are installed.',
+  frameworkTitle: 'One runtime, four integration surfaces',
+  frameworks: ['Vue 3 · @previewdock/vue', 'Vue 2.6/2.7 · @previewdock/vue2', 'React 16.8–19 · @previewdock/react', 'Web Component · @previewdock/web'],
   modes: [
     { key: 'ALL', title: 'All mode', text: 'The fastest path for file centers and general-purpose preview.', install: 'pnpm add vue @previewdock/vue @previewdock/preset-all', importLine: "import { createAllFormatEngine } from '@previewdock/preset-all'", engineLine: 'const engine = createAllFormatEngine()', recommended: 'Recommended' },
     { key: 'CAT', title: 'Category mode', text: 'Install only the categories your business exposes.', install: 'pnpm add vue @previewdock/vue @previewdock/core @previewdock/preset-documents @previewdock/preset-images', importLine: "import { createViewerEngine } from '@previewdock/core'\nimport { documentsPack } from '@previewdock/preset-documents'\nimport { imagesPack } from '@previewdock/preset-images'", engineLine: 'const engine = createViewerEngine([documentsPack, imagesPack])', recommended: '' },
@@ -71,11 +74,13 @@ const copy = computed(() => locale.value === 'en' ? {
   architectureTitle: '从选择到预览，只需三步', architectureDescription: '选择覆盖范围、接入统一组件，然后为用户提供一致的文件预览体验。', architectureLink: '查看产品使用方式',
   steps: [
     { no: '01', title: '选择覆盖范围', text: '使用 All 模式，或选择业务需要的类别', marks: ['ALL', 'DOC', 'IMG', '3D'] },
-    { no: '02', title: '接入 PreviewDock', text: '传入本地文件、二进制数据或授权 URL', marks: ['VUE'] },
+    { no: '02', title: '接入 PreviewDock', text: '传入本地文件、二进制数据或授权 URL', marks: ['VUE 3', 'VUE 2', 'REACT', 'WEB'] },
     { no: '03', title: '打开并预览', text: '不同文件类型使用一致的操作界面', marks: ['文档', '图片', '媒体', '模型'] },
   ],
   formatTitle: '七大类别，一套统一运行时', formatDescription: '详细查看系统可提供的办公文档、数据、压缩包、图片、音视频、图表和模型类型。', formatLink: '查看分类与格式详情',
-  integrationTitle: '选择 All 模式或分类模式', integrationDescription: '两种模式使用相同的 Vue 组件和按需加载引擎；区别只在于安装全部类别，还是只安装选中的类别。',
+  integrationTitle: '选择 All 模式或分类模式', integrationDescription: '各框架共享同一个引擎和按需适配器；区别只在于安装全部类别，还是只安装选中的类别。',
+  frameworkTitle: '一套运行时，四种接入场景',
+  frameworks: ['Vue 3 · @previewdock/vue', 'Vue 2.6/2.7 · @previewdock/vue2', 'React 16.8–19 · @previewdock/react', '原生/Web Component · @previewdock/web'],
   modes: [
     { key: 'ALL', title: 'All 模式', text: '适合文件中心和通用预览，接入路径最短。', install: 'pnpm add vue @previewdock/vue @previewdock/preset-all', importLine: "import { createAllFormatEngine } from '@previewdock/preset-all'", engineLine: 'const engine = createAllFormatEngine()', recommended: '推荐' },
     { key: 'CAT', title: '分类模式', text: '只安装业务实际开放的格式类别。', install: 'pnpm add vue @previewdock/vue @previewdock/core @previewdock/preset-documents @previewdock/preset-images', importLine: "import { createViewerEngine } from '@previewdock/core'\nimport { documentsPack } from '@previewdock/preset-documents'\nimport { imagesPack } from '@previewdock/preset-images'", engineLine: 'const engine = createViewerEngine([documentsPack, imagesPack])', recommended: '' },
@@ -86,23 +91,33 @@ const copy = computed(() => locale.value === 'en' ? {
 const primaryCapability = computed(() => copy.value.capabilities[0]!)
 const secondaryCapabilities = computed(() => copy.value.capabilities.slice(1))
 
-const formats = computed(() => locale.value === 'en' ? [
-  { kind: 'documents', title: 'Office & Documents', lines: ['Word  DOC · DOCX · DOCM', 'Excel  XLS · XLSX · XLSM', 'Slides  PPT · PPTX · PPTM', 'PDF · ODF · OFD · RTF · EPUB'], package: '@previewdock/preset-documents', tone: 'blue' },
-  { kind: 'text', title: 'Text & Data', lines: ['TXT · MD · LOG · Source', 'CSV · TSV · JSON · XML'], package: '@previewdock/preset-text-data', tone: 'cyan' },
-  { kind: 'archives', title: 'Archives', lines: ['ZIP · JAR · TAR · GZIP', 'TGZ · RAR · 7Z', 'ZIP/JAR up to 1 GB · others 100 MB'], package: '@previewdock/preset-archives', tone: 'green' },
-  { kind: 'images', title: 'Images', lines: ['PNG · JPEG · GIF · WebP · SVG', 'BMP · ICO · TIFF · TGA · PSD'], package: '@previewdock/preset-images', tone: 'pink' },
-  { kind: 'media', title: 'Media', lines: ['MP3 · WAV · OGG · AAC · FLAC', 'MP4 · WebM · MOV · M4V'], package: '@previewdock/preset-media', tone: 'violet' },
-  { kind: 'diagrams', title: 'Diagrams', lines: ['BPMN · XMind · VSD · VSDX', 'WMF · EMF'], package: '@previewdock/preset-diagrams', tone: 'amber' },
-  { kind: '3d', title: '3D & CAD', lines: ['GLB · OBJ · STL · FBX · 3MF', 'DXF · STEP · IGES · 3DM · IFC'], package: '@previewdock/preset-3d-cad', tone: 'blue' },
-] : [
-  { kind: 'documents', title: 'Office 与文档', lines: ['Word  DOC · DOCX · DOCM', 'Excel  XLS · XLSX · XLSM', '演示  PPT · PPTX · PPTM', 'PDF · ODF · OFD · RTF · EPUB'], package: '@previewdock/preset-documents', tone: 'blue' },
-  { kind: 'text', title: '文本与数据', lines: ['TXT · MD · LOG · 各类源码', 'CSV · TSV · JSON · XML'], package: '@previewdock/preset-text-data', tone: 'cyan' },
-  { kind: 'archives', title: '压缩包', lines: ['ZIP · JAR · TAR · GZIP', 'TGZ · RAR · 7Z', 'ZIP/JAR 最大 1 GB · 其他 100 MB'], package: '@previewdock/preset-archives', tone: 'green' },
-  { kind: 'images', title: '图片', lines: ['PNG · JPEG · GIF · WebP · SVG', 'BMP · ICO · TIFF · TGA · PSD'], package: '@previewdock/preset-images', tone: 'pink' },
-  { kind: 'media', title: '音视频', lines: ['MP3 · WAV · OGG · AAC · FLAC', 'MP4 · WebM · MOV · M4V'], package: '@previewdock/preset-media', tone: 'violet' },
-  { kind: 'diagrams', title: '图表与流程图', lines: ['BPMN · XMind · VSD · VSDX', 'WMF · EMF'], package: '@previewdock/preset-diagrams', tone: 'amber' },
-  { kind: '3d', title: '3D 与 CAD', lines: ['GLB · OBJ · STL · FBX · 3MF', 'DXF · STEP · IGES · 3DM · IFC'], package: '@previewdock/preset-3d-cad', tone: 'blue' },
-])
+const presetByCategory = {
+  documents: '@previewdock/preset-documents',
+  'text-data': '@previewdock/preset-text-data',
+  archives: '@previewdock/preset-archives',
+  images: '@previewdock/preset-images',
+  media: '@previewdock/preset-media',
+  diagrams: '@previewdock/preset-diagrams',
+  '3d-cad': '@previewdock/preset-3d-cad',
+} as const
+const toneByCategory = {
+  documents: 'blue', 'text-data': 'cyan', archives: 'green', images: 'pink',
+  media: 'violet', diagrams: 'amber', '3d-cad': 'blue',
+} as const
+const kindByCategory = {
+  documents: 'documents', 'text-data': 'text', archives: 'archives', images: 'images',
+  media: 'media', diagrams: 'diagrams', '3d-cad': '3d',
+} as const
+
+const formats = computed(() => formatCategories.map(category => ({
+  kind: kindByCategory[category.id],
+  title: locale.value === 'en' ? category.label : category.labelZh,
+  lines: category.families.map(family =>
+    `${locale.value === 'en' ? family.label : family.labelZh}  ${family.extensions.map(value => value.toUpperCase()).join(' · ')}`,
+  ),
+  package: presetByCategory[category.id],
+  tone: toneByCategory[category.id],
+})))
 </script>
 
 <template>
@@ -171,6 +186,10 @@ const formats = computed(() => locale.value === 'en' ? [
 
       <section class="section panel-section integration-section">
         <div class="section-heading"><h2>{{ copy.integrationTitle }}</h2><p>{{ copy.integrationDescription }}</p></div>
+        <div class="framework-matrix" aria-label="Framework compatibility">
+          <strong>{{ copy.frameworkTitle }}</strong>
+          <span v-for="framework in copy.frameworks" :key="framework">{{ framework }}</span>
+        </div>
         <div class="integration-modes">
           <article v-for="mode in copy.modes" :key="mode.key" class="integration-mode" :class="{ 'integration-mode--primary': mode.key === 'ALL' }">
             <header><span>{{ mode.key }}</span><div><h3>{{ mode.title }}</h3><p>{{ mode.text }}</p></div><small v-if="mode.recommended">{{ mode.recommended }}</small></header>

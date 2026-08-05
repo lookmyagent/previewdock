@@ -1,6 +1,6 @@
 {
   "name": "@previewdock/vue",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vue 3 host component for PreviewDock",
   "license": "Apache-2.0",
   "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/vue" },
@@ -14,7 +14,7 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
+      "types": "./dist/vue/src/index.d.ts",
       "import": "./dist/previewdock.js"
     },
     "./style.css": "./dist/previewdock.css"

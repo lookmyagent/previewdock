@@ -9,8 +9,8 @@ file does not download Office, CAD, archive, or media engines. Heavy parsers can
 run in dedicated Web Workers or WebAssembly runtimes while the UI stays
 responsive.
 
-> Status: early architecture prototype. The public package name and project
-> branding are working names and may change before the first release.
+> `v0.1.0` is the stable baseline. The `codex/ecosystem-format-parity` branch
+> prepares the multi-framework and expanded-format `v0.2.0` release.
 
 ![Playground](docs/playground-screenshot.png)
 
@@ -20,6 +20,13 @@ responsive.
 | --- | --- |
 | `@previewdock/core` | File detection, adapter registry, lifecycle and cancellation |
 | `@previewdock/vue` | Vue 3 host component |
+| `@previewdock/vue2` | Vue 2.6 and Vue 2.7 Options API component |
+| `@previewdock/react` | React 16.8, 17, 18 and 19 component |
+| `@previewdock/web` | Native JS mount API and `<preview-dock>` Custom Element |
+| `@previewdock/preset-all` | Complete seven-category preset |
+| `@previewdock/preset-*` | Category presets for modular installation |
+| `@previewdock/assets` | Self-hosted Worker/WASM/font assets and copy CLI |
+| `@previewdock/vite-plugin` | Vite asset-copy integration |
 | `@previewdock/adapter-text` | Safe text preview and sanitized Markdown source/rendered modes |
 | `@previewdock/adapter-image` | Browser-native image preview |
 | `@previewdock/adapter-pdf` | Browser-native PDF preview |
@@ -77,6 +84,47 @@ const engine = createViewerEngine([
 
 See [modular integration](docs/modular-integration.md) for install combinations,
 measured size estimates, archive worker setup, and selective Office support.
+
+## Framework integration
+
+Every framework host accepts the same `engine`, `source`, `fileName`,
+`mimeType`, `locale`, and `messages` inputs. Vue emits lifecycle events, React
+uses callbacks, and the Web package dispatches DOM events.
+
+```bash
+# Choose one UI host
+pnpm add @previewdock/vue       # Vue 3
+pnpm add @previewdock/vue2      # Vue 2.6 / 2.7
+pnpm add @previewdock/react     # React 16.8–19
+pnpm add @previewdock/web       # Native JS / Web Component / iframe host
+
+# Then choose all formats or only the product categories you need
+pnpm add @previewdock/preset-all
+pnpm add @previewdock/core @previewdock/preset-documents @previewdock/preset-images
+```
+
+The All preset is the shortest setup for file centers. Category presets keep
+unrelated Office, archive, CAD, media, and image dependencies out of an
+application that does not use them. See the [framework examples](docs/frameworks.md).
+
+## Seven product categories
+
+The central format catalog is the single source for presets, the portal,
+documentation, Playground, and compatibility tests.
+
+| Category | Representative formats |
+| --- | --- |
+| Office & Documents | DOC/DOCX, XLS/XLSX/XLSB, PPT/PPTX, WPS/ET/DPS, PDF/OFD, ODF, email and e-books |
+| Text & Data | text, Markdown, source/config files, IPYNB, SQLite, Parquet, Avro, WASM and WebArchive |
+| Archives | ZIP/ZIPX, TAR streams, 7Z/RAR, CAB/ISO/XAR, application and comic containers |
+| Images & Design | common raster/vector images, HEIC/HEIF/JXL, PSD/AI/EPS and fonts |
+| Media | browser audio/video, HLS and MIDI |
+| Diagrams & Engineering | BPMN/XMind/VSDX, drawing languages, geospatial and EDA files |
+| 3D & CAD | DXF/DWG, common meshes, USD, point clouds, STEP/IFC/Rhino and legacy 3D |
+
+Formats are explicitly labeled as standard visual preview or structural/quick
+preview. A structural preview shows real file metadata, readable content and
+byte structure; it is not presented as desktop-editor fidelity.
 
 ## Current support
 

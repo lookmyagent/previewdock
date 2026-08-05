@@ -326,24 +326,30 @@
             </button>
 
             <div v-if="isCategoryOpen(group.id)" class="file-list">
-              <button
-                v-for="sample in group.items"
-                :key="sample.id"
-                :data-sample-id="sample.id"
-                type="button"
-                class="file-row"
-                :class="{ 'file-row--active': activeFile.id === sample.id }"
-                @click="selectSample(sample)"
-              >
-                <span class="file-row__icon" :data-kind="sample.kind">{{ sample.shortType }}</span>
-                <span class="file-row__content">
-                  <strong>{{ sample.name }}</strong>
-                  <small>{{ sampleLabel(sample) }} · {{ formatSize(sampleSize(sample)) }}</small>
-                  <small v-if="sample.formats?.length" class="file-row__formats">
-                    {{ t('formatCoverage') }} {{ sample.formats.join(' · ') }}
-                  </small>
-                </span>
-              </button>
+              <template v-for="family in group.families" :key="family.id">
+                <div class="file-family-row">
+                  <strong>{{ family.title }}</strong>
+                  <span>{{ family.formats }}</span>
+                </div>
+                <button
+                  v-for="sample in family.items"
+                  :key="sample.id"
+                  :data-sample-id="sample.id"
+                  type="button"
+                  class="file-row"
+                  :class="{ 'file-row--active': activeFile.id === sample.id }"
+                  @click="selectSample(sample)"
+                >
+                  <span class="file-row__icon" :data-kind="sample.kind">{{ sample.shortType }}</span>
+                  <span class="file-row__content">
+                    <strong>{{ sample.name }}</strong>
+                    <small>{{ sampleLabel(sample) }} · {{ formatSize(sampleSize(sample)) }}</small>
+                    <small v-if="sample.formats?.length" class="file-row__formats">
+                      {{ t('formatCoverage') }} {{ sample.formats.join(' · ') }}
+                    </small>
+                  </span>
+                </button>
+              </template>
             </div>
           </section>
 
@@ -438,6 +444,8 @@
 import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   ViewerEngine,
+  formatCategories,
+  getFormatDefinition,
   type FileSource,
   type OpenResult,
   type PreviewCapability,
@@ -481,6 +489,12 @@ interface SampleCategory {
   mark: string
   titleKey: UiKey
   formats: string
+  families: readonly {
+    id: string
+    label: string
+    labelZh: string
+    extensions: readonly string[]
+  }[]
 }
 
 interface InspectorState {
@@ -559,50 +573,22 @@ function t(key: UiKey): string {
   return ui[locale.value][key]
 }
 
-const sampleCategories: SampleCategory[] = [
-  {
-    id: 'documents',
-    mark: 'DOC',
-    titleKey: 'categoryDocuments',
-    formats: 'PDF · DOC/XLS/PPT · DOCX/XLSX/PPTX · WPS/ET/DPS · ODF/OFD/EPUB/EML/RTF',
-  },
-  {
-    id: 'text-data',
-    mark: '{ }',
-    titleKey: 'categoryTextData',
-    formats: 'TXT · MD · CSV · TSV · JSON · XML · LOG · JS/TS · CSS/HTML · JAVA/PHP/PY/SQL/SH',
-  },
-  {
-    id: 'archives',
-    mark: 'ARC',
-    titleKey: 'categoryArchives',
-    formats: 'ZIP · JAR · RAR · 7Z · TAR · GZ/GZIP · TGZ',
-  },
-  {
-    id: 'images',
-    mark: 'IMG',
-    titleKey: 'categoryImages',
-    formats: 'PNG · JPG/JPEG/JFIF · GIF · WEBP · BMP · ICO · SVG · TIF/TIFF · TGA · PSD',
-  },
-  {
-    id: 'media',
-    mark: 'AV',
-    titleKey: 'categoryMedia',
-    formats: 'MP3 · WAV · OGG/OGA · M4A/AAC · FLAC · OPUS · MP4/M4V/MOV · WEBM · OGV',
-  },
-  {
-    id: 'diagrams',
-    mark: 'MAP',
-    titleKey: 'categoryDiagrams',
-    formats: 'BPMN · XMIND · VSDX · VSD · WMF · EMF',
-  },
-  {
-    id: '3d-cad',
-    mark: '3D',
-    titleKey: 'category3dCad',
-    formats: 'GLTF/GLB · OBJ · STL · PLY · FBX · DAE · 3DS · 3MF · WRL · OFF · DXF · 3DM · IFC · STEP/STP · IGES/IGS · BREP',
-  },
-]
+const categoryPresentation = {
+  documents: { mark: 'DOC', titleKey: 'categoryDocuments' },
+  'text-data': { mark: '{ }', titleKey: 'categoryTextData' },
+  archives: { mark: 'ARC', titleKey: 'categoryArchives' },
+  images: { mark: 'IMG', titleKey: 'categoryImages' },
+  media: { mark: 'AV', titleKey: 'categoryMedia' },
+  diagrams: { mark: 'MAP', titleKey: 'categoryDiagrams' },
+  '3d-cad': { mark: '3D', titleKey: 'category3dCad' },
+} as const
+
+const sampleCategories: SampleCategory[] = formatCategories.map(category => ({
+  id: category.id,
+  ...categoryPresentation[category.id],
+  formats: category.families.flatMap(family => family.extensions).map(value => value.toUpperCase()).join(' · '),
+  families: category.families,
+}))
 
 const featuredFormats = [
   'DOC / DOCX', 'XLS / XLSX', 'PPT / PPTX', 'PDF', 'ZIP / RAR / 7Z',
@@ -1674,12 +1660,43 @@ function matchesQuery(sample: SampleFile): boolean {
 
 const officialSampleCount = computed(() => samples.value.filter(sample => sample.kind !== 'local').length)
 const localSamples = computed(() => samples.value.filter(sample => sample.kind === 'local' && matchesQuery(sample)))
+
+function sampleFamilyId(sample: SampleFile): string | undefined {
+  const candidates = [
+    ...(sample.formats || []),
+    sample.shortType,
+    sample.name.split('.').pop() || '',
+  ].flatMap(value => value.split(/[\/\s,·]+/))
+  for (const candidate of candidates) {
+    const definition = getFormatDefinition(candidate)
+    if (definition) return definition.family
+  }
+  return undefined
+}
+
 const sampleGroups = computed(() => sampleCategories
-  .map(category => ({
-    ...category,
-    title: t(category.titleKey),
-    items: samples.value.filter(sample => sampleCategory(sample) === category.id && matchesQuery(sample)),
-  }))
+  .map(category => {
+    const items = samples.value.filter(sample => sampleCategory(sample) === category.id && matchesQuery(sample))
+    const families = category.families
+      .map(family => ({
+        id: family.id,
+        title: locale.value === 'zh-CN' ? family.labelZh : family.label,
+        formats: family.extensions.map(value => value.toUpperCase()).join(' · '),
+        items: items.filter(sample => sampleFamilyId(sample) === family.id),
+      }))
+      .filter(family => !query.value || family.items.length)
+    const assigned = new Set(families.flatMap(family => family.items.map(sample => sample.id)))
+    const otherItems = items.filter(sample => !assigned.has(sample.id))
+    if (otherItems.length) {
+      families.push({
+        id: 'other',
+        title: locale.value === 'zh-CN' ? '其他示例' : 'Other examples',
+        formats: '',
+        items: otherItems,
+      })
+    }
+    return { ...category, title: t(category.titleKey), items, families }
+  })
   .filter(group => !query.value || group.items.length))
 const visibleSampleCount = computed(() => (
   localSamples.value.length + sampleGroups.value.reduce((total, group) => total + group.items.length, 0)

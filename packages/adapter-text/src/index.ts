@@ -6,8 +6,11 @@ import type {
 
 const extensions = new Set([
   'txt', 'md', 'markdown', 'csv', 'tsv', 'json', 'xml', 'log',
-  'js', 'ts', 'jsx', 'tsx', 'css', 'scss', 'html', 'htm',
-  'java', 'php', 'py', 'c', 'cpp', 'h', 'hpp', 'sql', 'sh',
+  'js', 'mjs', 'cjs', 'ts', 'jsx', 'tsx', 'css', 'scss', 'html', 'htm',
+  'java', 'php', 'py', 'c', 'cpp', 'cc', 'h', 'hpp', 'cs', 'sql', 'sh', 'bash',
+  'vue', 'react', 'yaml', 'yml', 'ini', 'toml', 'proto', 'hcl', 'tex', 'gv',
+  'http', 'go', 'rs', 'rb', 'swift', 'kt', 'diff', 'patch', 'jsonc', 'json5',
+  'ipynb', 'properties', 'cfg', 'conf',
 ])
 
 const markdownExtensions = new Set(['md', 'markdown'])

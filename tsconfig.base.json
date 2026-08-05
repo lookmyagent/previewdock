@@ -37,6 +37,9 @@
       "@previewdock/adapter-structured": ["packages/adapter-structured/src/index.ts"],
       "@previewdock/adapter-structured/manifest": ["packages/adapter-structured/src/manifest.ts"],
       "@previewdock/adapter-structured/*": ["packages/adapter-structured/src/*"],
+      "@previewdock/adapter-inspector": ["packages/adapter-inspector/src/index.ts"],
+      "@previewdock/adapter-inspector/manifest": ["packages/adapter-inspector/src/manifest.ts"],
+      "@previewdock/adapter-inspector/*": ["packages/adapter-inspector/src/*"],
       "@previewdock/converter-zetaoffice": ["packages/converter-zetaoffice/src/index.ts"],
       "@previewdock/preset-documents": ["packages/preset-documents/src/index.ts"],
       "@previewdock/preset-text-data": ["packages/preset-text-data/src/index.ts"],
@@ -46,7 +49,12 @@
       "@previewdock/preset-diagrams": ["packages/preset-diagrams/src/index.ts"],
       "@previewdock/preset-3d-cad": ["packages/preset-3d-cad/src/index.ts"],
       "@previewdock/preset-all": ["packages/preset-all/src/index.ts"],
-      "@previewdock/vue": ["packages/vue/src/index.ts"]
+      "@previewdock/vue": ["packages/vue/src/index.ts"],
+      "@previewdock/vue2": ["packages/vue2/src/index.ts"],
+      "@previewdock/react": ["packages/react/src/index.tsx"],
+      "@previewdock/web": ["packages/web/src/index.ts"],
+      "@previewdock/assets": ["packages/assets/src/index.ts"],
+      "@previewdock/vite-plugin": ["packages/vite-plugin/src/index.ts"]
     },
     "strict": true,
     "noUncheckedIndexedAccess": true,

@@ -1,0 +1,31 @@
+{
+  "name": "@previewdock/vite-plugin",
+  "version": "0.2.0",
+  "description": "Vite asset deployment plugin for PreviewDock",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/vite-plugin" },
+  "homepage": "https://github.com/lookmyagent/previewdock#readme",
+  "bugs": { "url": "https://github.com/lookmyagent/previewdock/issues" },
+  "type": "module",
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@previewdock/assets": "workspace:*"
+  },
+  "peerDependencies": {
+    "vite": ">=5 <8"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}

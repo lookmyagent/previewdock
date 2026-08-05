@@ -1,6 +1,6 @@
 {
   "name": "@previewdock/preset-documents",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Official Office, PDF, email, ebook and document preset for PreviewDock",
   "license": "Apache-2.0",
   "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/preset-documents" },
@@ -11,6 +11,7 @@
   "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
   "scripts": { "build": "tsup src/index.ts --format esm --dts --clean --splitting", "typecheck": "tsc --noEmit -p tsconfig.json" },
   "dependencies": {
+    "@previewdock/adapter-inspector": "workspace:*",
     "@previewdock/adapter-legacy-office": "workspace:*",
     "@previewdock/adapter-openxml": "workspace:*",
     "@previewdock/adapter-pdf": "workspace:*",

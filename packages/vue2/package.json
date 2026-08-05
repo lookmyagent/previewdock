@@ -1,0 +1,33 @@
+{
+  "name": "@previewdock/vue2",
+  "version": "0.2.0",
+  "description": "Vue 2.6 and Vue 2.7 host component for PreviewDock",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/vue2" },
+  "homepage": "https://github.com/lookmyagent/previewdock#readme",
+  "bugs": { "url": "https://github.com/lookmyagent/previewdock/issues" },
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --external vue",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@previewdock/core": "workspace:*",
+    "@previewdock/web": "workspace:*"
+  },
+  "peerDependencies": {
+    "vue": "^2.6.14 || ^2.7.0"
+  },
+  "devDependencies": {
+    "vue": "2.7.16"
+  }
+}

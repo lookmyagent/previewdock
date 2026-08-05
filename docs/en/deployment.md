@@ -12,6 +12,20 @@ PreviewDock's basic capabilities can ship with the frontend application. Complex
 
 ## Complex-format resources
 
+Copy runtime assets that match the installed package versions:
+
+```bash
+pnpm add @previewdock/assets
+pnpm exec previewdock-copy-assets ./public/previewdock
+```
+
+Vite applications can install `@previewdock/vite-plugin` and add
+`previewDockAssets()` to the plugin list. Then provide one shared base URL:
+
+```ts
+const engine = createAllFormatEngine({ assetBaseUrl: '/previewdock/' })
+```
+
 All mode can receive shared runtime configuration. Category mode can configure each Pack separately:
 
 ```ts

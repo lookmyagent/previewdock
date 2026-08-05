@@ -1,6 +1,6 @@
 {
   "name": "@previewdock/adapter-openxml",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browser-side high-fidelity DOCX, XLSX and PPTX preview adapter",
   "license": "Apache-2.0",
   "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/adapter-openxml" },

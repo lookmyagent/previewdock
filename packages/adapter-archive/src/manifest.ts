@@ -6,7 +6,12 @@ export function createArchiveAdapterManifest(
 ): AdapterRegistration {
   return {
     id: 'archive',
-    extensions: ['zip', 'jar', 'tar', 'gz', 'gzip', 'tgz', 'rar', '7z'],
+    extensions: [
+      'zip', 'zipx', 'jar', 'war', 'ear', 'apk', 'cbz', 'cbr',
+      'tar', 'gz', 'gzip', 'tgz', 'bz2', 'bzip2', 'tbz', 'tbz2',
+      'xz', 'txz', 'lzma', 'zst', 'tzst', 'rar', '7z',
+      'cab', 'ar', 'cpio', 'iso', 'xar', 'lha', 'lzh',
+    ],
     mimeTypes: [
       'application/zip', 'application/java-archive',
       'application/gzip', 'application/x-gzip', 'application/x-tar',

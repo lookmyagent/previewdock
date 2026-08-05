@@ -15,7 +15,8 @@ import type {
 } from 'three'
 
 const modelExtensions = new Set([
-  'gltf', 'glb', 'obj', 'stl', 'ply', 'fbx', 'dae', '3ds', '3mf', 'wrl',
+  'gltf', 'glb', 'obj', 'stl', 'ply', 'fbx', 'dae', '3ds', '3mf', 'amf',
+  'wrl', 'vrml', 'pcd', 'vtk', 'xyz', 'usdz', 'kmz',
   'off', 'dxf', '3dm', 'ifc', 'step', 'stp', 'iges', 'igs', 'brep',
 ])
 const MAX_INPUT_SIZE = 60 * 1024 * 1024
@@ -162,9 +163,63 @@ async function loadModel(
     return { object: new ThreeMFLoader().parse(bytes), animations: [] }
   }
 
-  if (extension === 'wrl') {
+  if (extension === 'amf') {
+    const { AMFLoader } = await import('three/addons/loaders/AMFLoader.js')
+    return { object: new AMFLoader().parse(bytes), animations: [] }
+  }
+
+  if (extension === 'wrl' || extension === 'vrml') {
     const { VRMLLoader } = await import('three/addons/loaders/VRMLLoader.js')
     return { object: new VRMLLoader().parse(text(), ''), animations: [] }
+  }
+
+  if (extension === 'pcd') {
+    const { PCDLoader } = await import('three/addons/loaders/PCDLoader.js')
+    return { object: new PCDLoader().parse(bytes), animations: [] }
+  }
+
+  if (extension === 'vtk') {
+    const { VTKLoader } = await import('three/addons/loaders/VTKLoader.js')
+    const geometry = new VTKLoader().parse(bytes, '')
+    geometry.computeVertexNormals()
+    return {
+      object: new THREE.Mesh(
+        geometry,
+        new THREE.MeshStandardMaterial({ color: 0x6f8fe9, roughness: 0.72 }),
+      ),
+      animations: [],
+    }
+  }
+
+  if (extension === 'usdz') {
+    const { USDZLoader } = await import('three/addons/loaders/USDZLoader.js')
+    return { object: new USDZLoader().parse(bytes), animations: [] }
+  }
+
+  if (extension === 'kmz') {
+    const { KMZLoader } = await import('three/addons/loaders/KMZLoader.js')
+    const result = new KMZLoader().parse(bytes)
+    return { object: result.scene, animations: result.scene.animations || [] }
+  }
+
+  if (extension === 'xyz') {
+    const positions: number[] = []
+    for (const line of text().split(/\r?\n/)) {
+      const values = line.trim().split(/\s+/).map(Number)
+      if (values.length >= 3 && values.slice(0, 3).every(Number.isFinite)) {
+        positions.push(values[0]!, values[1]!, values[2]!)
+      }
+    }
+    if (!positions.length) throw new Error('XYZ file contains no point coordinates')
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+    return {
+      object: new THREE.Points(
+        geometry,
+        new THREE.PointsMaterial({ color: 0x5b8cff, size: 0.03 }),
+      ),
+      animations: [],
+    }
   }
 
   if (extension === '3dm') {

@@ -1656,6 +1656,30 @@ select {
   border-top: 1px solid #edf0f5;
 }
 
+.file-family-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 8px 3px;
+  padding: 7px 4px 6px;
+  border-bottom: 1px solid #e7ecf3;
+}
+
+.file-family-row strong {
+  color: #43506a;
+  font-size: 11px;
+}
+
+.file-family-row span {
+  overflow: hidden;
+  color: #929bad;
+  font-size: 9px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .file-list__empty {
   margin: 22px 12px;
   color: #8993a5;

@@ -8,21 +8,43 @@ import { textDataPack } from '@previewdock/preset-text-data'
 import { createViewerEngine, defineAdapterPack, type AdapterPack, type ViewerEngine } from '@previewdock/core'
 
 export interface AllFormatPresetOptions {
+  /**
+   * Base URL containing PreviewDock's self-hosted runtime assets. Adapter-level
+   * URLs still take precedence.
+   */
+  assetBaseUrl?: string
   archive?: ArchivesPresetOptions['archive']
   model?: ThreeDCadPresetOptions['model']
   legacyOffice?: DocumentsPresetOptions['legacyOffice'] & DiagramsPresetOptions['legacyOffice']
 }
 
+function assetUrl(baseUrl: string | undefined, path: string): string | undefined {
+  if (!baseUrl) return undefined
+  const normalized = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
+  return new URL(path, new URL(normalized, globalThis.location?.href || 'http://localhost/')).toString()
+}
+
 /** Creates one pack containing all seven official capability categories. */
 export function createAllFormatPack(options: AllFormatPresetOptions = {}): AdapterPack {
+  const archive = {
+    workerUrl: assetUrl(options.assetBaseUrl, 'libarchive/worker-bundle.js'),
+    wasmUrl: assetUrl(options.assetBaseUrl, 'libarchive/libarchive.wasm'),
+    ...options.archive,
+  }
+  const model = {
+    occtWasmUrl: assetUrl(options.assetBaseUrl, 'occt/occt-import-js.wasm'),
+    rhinoLibraryPath: assetUrl(options.assetBaseUrl, 'rhino/'),
+    ifcWasmPath: assetUrl(options.assetBaseUrl, 'ifc/'),
+    ...options.model,
+  }
   const categoryPacks = [
     createDocumentsPack({ legacyOffice: options.legacyOffice }),
     textDataPack,
-    createArchivesPack({ archive: options.archive }),
+    createArchivesPack({ archive }),
     imagesPack,
     mediaPack,
     createDiagramsPack({ legacyOffice: options.legacyOffice }),
-    createThreeDCadPack({ model: options.model }),
+    createThreeDCadPack({ model }),
   ]
 
   return defineAdapterPack({

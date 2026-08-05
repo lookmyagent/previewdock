@@ -1,6 +1,6 @@
 {
   "name": "@previewdock/adapter-3d",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browser-side 3D model viewer for PreviewDock",
   "license": "Apache-2.0",
   "repository": {

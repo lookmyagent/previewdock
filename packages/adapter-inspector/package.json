@@ -1,0 +1,32 @@
+{
+  "name": "@previewdock/adapter-inspector",
+  "version": "0.2.0",
+  "description": "Safe structural preview adapter for specialist PreviewDock formats",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lookmyagent/previewdock.git",
+    "directory": "packages/adapter-inspector"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/manifest.ts --format esm --dts --clean --splitting",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@previewdock/core": "workspace:*"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "@previewdock/adapter-advanced-image",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browser-side TIFF, TGA, and PSD preview adapter for PreviewDock",
   "license": "Apache-2.0",
   "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/adapter-advanced-image" },
@@ -29,6 +29,7 @@
   "dependencies": {
     "@previewdock/core": "workspace:*",
     "ag-psd": "^31.0.2",
+    "heic2any": "^0.0.4",
     "three": "^0.185.1"
   },
   "devDependencies": {

@@ -1,4 +1,5 @@
 import { createLegacyOfficeDocumentAdapterManifest } from '@previewdock/adapter-legacy-office/manifest'
+import { createInspectorAdapterManifest } from '@previewdock/adapter-inspector/manifest'
 import type { LegacyOfficeAdapterOptions } from '@previewdock/adapter-legacy-office'
 import { openXmlAdapterManifest } from '@previewdock/adapter-openxml/manifest'
 import { pdfAdapterManifest } from '@previewdock/adapter-pdf/manifest'
@@ -18,6 +19,7 @@ export function createDocumentsPack(options: DocumentsPresetOptions = {}): Adapt
       openXmlAdapterManifest,
       createLegacyOfficeDocumentAdapterManifest(options.legacyOffice),
       structuredDocumentAdapterManifest,
+      createInspectorAdapterManifest('documents'),
     ],
   })
 }

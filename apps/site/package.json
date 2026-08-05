@@ -1,6 +1,6 @@
 {
   "name": "@previewdock/site",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@previewdock/core": "workspace:*",
     "@previewdock/site-shell": "workspace:*",
     "vue": "^3.5.16"
   },

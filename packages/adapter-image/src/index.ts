@@ -5,10 +5,10 @@ import type {
 } from '@previewdock/core'
 
 const extensions = new Set([
-  'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'jfif', 'svg',
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'bmp', 'ico', 'jfif', 'svg',
 ])
 const mimeTypes = new Set([
-  'image/png', 'image/jpeg', 'image/gif', 'image/webp',
+  'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif',
   'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/svg+xml',
 ])
 

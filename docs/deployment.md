@@ -12,6 +12,19 @@ PreviewDock 的基础预览能力可以直接随前端应用部署。压缩包�
 
 ## 复杂格式资源
 
+推荐自动复制与 npm 包版本匹配的运行资源：
+
+```bash
+pnpm add @previewdock/assets
+pnpm exec previewdock-copy-assets ./public/previewdock
+```
+
+Vite 项目可以安装 `@previewdock/vite-plugin`，在配置中加入 `previewDockAssets()`。随后只需要提供统一路径：
+
+```ts
+const engine = createAllFormatEngine({ assetBaseUrl: '/previewdock/' })
+```
+
 All 模式可以统一传入运行配置；分类模式也可分别配置对应 Pack：
 
 ```ts

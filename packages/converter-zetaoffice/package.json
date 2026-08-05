@@ -1,6 +1,6 @@
 {
   "name": "@previewdock/converter-zetaoffice",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pure browser DOC/PPT to PDF conversion through ZetaOffice WebAssembly",
   "license": "Apache-2.0",
   "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/converter-zetaoffice" },

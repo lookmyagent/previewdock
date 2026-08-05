@@ -1,6 +1,6 @@
 {
   "name": "@previewdock/adapter-image",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browser-native image preview adapter for PreviewDock",
   "license": "Apache-2.0",
   "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/adapter-image" },

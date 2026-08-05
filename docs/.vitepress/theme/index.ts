@@ -3,6 +3,7 @@ import DefaultTheme from 'vitepress/theme'
 import { useData } from 'vitepress'
 import { SiteFooter, SiteHeader } from '../../../packages/site-shell/src/index'
 import { projectLinks } from '../../../config/project'
+import FormatCatalog from './FormatCatalog.vue'
 import '../../../packages/site-shell/src/styles.css'
 import './custom.css'
 
@@ -31,7 +32,8 @@ const PreviewDockDocsLayout = defineComponent({
 export default {
   ...DefaultTheme,
   Layout: PreviewDockDocsLayout,
-  enhanceApp() {
+  enhanceApp({ app }) {
+    app.component('FormatCatalog', FormatCatalog)
     if (typeof window !== 'undefined') {
       window.addEventListener('click', forceDocsNavigation, true)
     }

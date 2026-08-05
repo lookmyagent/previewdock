@@ -1,5 +1,6 @@
 export * from './detect'
 export * from './engine'
+export * from './formats'
 export * from './packs'
 export * from './registry'
 export * from './source'

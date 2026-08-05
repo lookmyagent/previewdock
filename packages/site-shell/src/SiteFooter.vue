@@ -23,7 +23,7 @@ function navigateSurface(event: MouseEvent, href: string) {
     <div class="site-footer__brand">
       <a class="site-brand" :href="siteUrl" @click="navigateSurface($event, siteUrl)"><span class="site-brand__mark">PD</span><span class="site-brand__name">PreviewDock</span></a>
       <p>{{ labels.tagline }}</p>
-      <small>0.1.0 · Early Preview · Apache-2.0</small>
+      <small>0.2.0 · Preview · Apache-2.0</small>
     </div>
     <div>
       <strong>{{ labels.product }}</strong>

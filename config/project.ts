@@ -10,7 +10,7 @@ export const projectLinks = {
 
 export const projectMeta = {
   name: 'PreviewDock',
-  version: '0.1.0',
-  stage: 'Early Preview',
+  version: '0.2.0',
+  stage: 'Preview',
   license: 'Apache-2.0',
 } as const

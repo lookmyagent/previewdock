@@ -4,7 +4,7 @@ import type {
   PreviewSession,
 } from '@previewdock/core'
 
-const extensions = new Set(['tif', 'tiff', 'tga', 'psd'])
+const extensions = new Set(['tif', 'tiff', 'tga', 'psd', 'heic', 'heif'])
 const MAX_INPUT_SIZE = 80 * 1024 * 1024
 const MAX_PIXELS = 50_000_000
 
@@ -80,6 +80,16 @@ async function decodeImage(
 ): Promise<DecodedImage> {
   const native = await decodeNative(blob)
   if (native) return native
+
+  if (extension === 'heic' || extension === 'heif') {
+    const { default: heic2any } = await import('heic2any')
+    const converted = await heic2any({ blob, toType: 'image/png' })
+    const output = Array.isArray(converted) ? converted[0] : converted
+    if (!output) throw new Error('HEIC decoder returned no image')
+    const decoded = await decodeNative(output)
+    if (!decoded) throw new Error('Unable to decode converted HEIC image')
+    return decoded
+  }
 
   if (extension === 'tif' || extension === 'tiff') {
     const { TIFFLoader } = await import('three/addons/loaders/TIFFLoader.js')

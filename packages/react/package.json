@@ -1,0 +1,34 @@
+{
+  "name": "@previewdock/react",
+  "version": "0.2.0",
+  "description": "React 16.8 through 19 host component for PreviewDock",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/lookmyagent/previewdock.git", "directory": "packages/react" },
+  "homepage": "https://github.com/lookmyagent/previewdock#readme",
+  "bugs": { "url": "https://github.com/lookmyagent/previewdock/issues" },
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.tsx --format esm --dts --clean --external react",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@previewdock/core": "workspace:*",
+    "@previewdock/web": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": ">=16.8 <20"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.6",
+    "react": "^19.1.0"
+  }
+}

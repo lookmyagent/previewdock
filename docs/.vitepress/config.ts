@@ -8,6 +8,7 @@ const docsSidebar = [
     items: [
       { text: '产品与接入概览', link: '/' },
       { text: '快速开始', link: '/getting-started' },
+      { text: 'Vue / React / Web 接入', link: '/frameworks' },
       { text: 'All 模式与分类模式', link: '/modular-integration' },
     ],
   },
@@ -35,6 +36,7 @@ const enDocsSidebar = [
     items: [
       { text: 'Product and integration overview', link: '/en/' },
       { text: 'Getting started', link: '/en/getting-started' },
+      { text: 'Vue / React / Web', link: '/en/frameworks' },
       { text: 'All mode and category mode', link: '/en/modular-integration' },
     ],
   },

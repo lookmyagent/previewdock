@@ -1,6 +1,6 @@
 {
   "name": "@previewdock/docs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "typecheck": "vitepress build ../../docs"
   },
   "devDependencies": {
+    "@previewdock/core": "workspace:*",
     "@previewdock/site-shell": "workspace:*",
     "vitepress": "^1.6.4"
   }

@@ -3,8 +3,8 @@ import type { AdapterRegistration } from '@previewdock/core'
 export const mediaAdapterManifest: AdapterRegistration = {
   id: 'media',
   extensions: [
-    'mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac', 'opus',
-    'mp4', 'webm', 'ogv', 'mov', 'm4v',
+    'mp3', 'mpeg', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac', 'opus', 'weba',
+    'mid', 'midi', 'mp4', 'webm', 'ogv', 'mov', 'm4v', 'm3u8',
   ],
   mimeTypes: [
     'audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg',

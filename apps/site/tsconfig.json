@@ -4,5 +4,5 @@
     "composite": true,
     "types": ["vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "../../config/project.ts"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "../../config/project.ts", "../../packages/core/src/**/*.ts"]
 }
