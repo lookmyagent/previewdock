@@ -11,6 +11,7 @@ const shouldPublish = process.argv.includes('--publish')
 const dryRun = process.argv.includes('--dry-run')
 const tagArgument = process.argv.find((argument) => argument.startsWith('--tag='))
 const distTag = tagArgument?.slice('--tag='.length) || 'latest'
+const publishDelayMs = Number.parseInt(process.env.NPM_PUBLISH_DELAY_MS || '2500', 10)
 
 if (shouldPublish && dryRun) {
   throw new Error('Choose either --publish or --dry-run, not both.')
@@ -32,6 +33,12 @@ function readJson(file) {
 function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
+
+function sleep(milliseconds) {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds))
+}
+
+assert(Number.isFinite(publishDelayMs) && publishDelayMs >= 0, 'NPM_PUBLISH_DELAY_MS must be a non-negative integer')
 
 const packageDirectories = (await readdir(packagesRoot, { withFileTypes: true }))
   .filter((entry) => entry.isDirectory())
@@ -135,6 +142,10 @@ if (dryRun || shouldPublish) {
     if (shouldPublish && process.env.GITHUB_ACTIONS === 'true') args.push('--provenance')
     process.stdout.write(`${dryRun ? 'Checking' : 'Publishing'} ${item.name}@${item.version}\n`)
     run('npm', args)
+    if (shouldPublish && publishDelayMs > 0) {
+      process.stdout.write(`Waiting ${publishDelayMs}ms before the next registry write.\n`)
+      await sleep(publishDelayMs)
+    }
   }
 }
 
