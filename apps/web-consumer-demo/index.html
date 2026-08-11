@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PreviewDock Web Demo</title></head>
+  <body>
+    <main class="demo-page"><section class="demo-intro"><span class="brand">PreviewDock / Web Component</span><h1>原生 Web 全格式文件预览</h1><p>不依赖 Vue 或 React，使用 <code>@previewdock/web</code> 的 DOM host 接入。</p><input id="file-input" class="visually-hidden" type="file" /><div class="actions"><button id="choose-file" class="primary" type="button">选择文件</button><button id="restore-example" class="secondary" type="button">恢复文本示例</button></div><p class="hint">当前文件：<strong id="file-name">welcome.md</strong></p></section><section id="preview" class="preview-frame" aria-label="文件预览"></section><p id="runtime-status" class="runtime-status">等待预览</p></main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

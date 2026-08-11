@@ -69,12 +69,15 @@ const messages: Record<PreviewDockLocale, PreviewDockMessages> = {
 
 const STYLE_ID = 'previewdock-web-host-style'
 const hostStyle = `
-.pd-host{position:relative;display:flex;height:100%;min-height:0;flex-direction:column;overflow:hidden;background:#fff;color:#172033;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+.pd-host{position:relative;display:flex;height:100%;min-height:0;flex-direction:column;overflow:hidden;background:#fff;color:#172033;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .pd-host__toolbar{display:flex;min-height:52px;align-items:center;justify-content:space-between;gap:20px;padding:0 18px;border-bottom:1px solid #e3e8f0;background:#fff}
-.pd-host__title{min-width:0}.pd-host__name{display:block;overflow:hidden;color:#111827;font-size:14px;font-weight:650;text-overflow:ellipsis;white-space:nowrap}
+.pd-host__title{display:flex;min-width:0;align-items:baseline;gap:10px}.pd-host__name{overflow:hidden;color:#111827;font-size:14px;font-weight:650;text-overflow:ellipsis;white-space:nowrap}
 .pd-host__meta,.pd-host__status{color:#778196;font-size:12px}.pd-host__surface{position:relative;min-height:0;flex:1;overflow:auto;background:#f7f9fc}.pd-host__mount{height:100%;min-height:100%}
-.pd-host__overlay{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;gap:10px;padding:24px;background:#f7f9fc;color:#778196;font-size:13px;text-align:center}
+.pd-host__overlay{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;gap:10px;background:#f7f9fc;color:#778196;font-size:13px;text-align:center}
 .pd-host__overlay[hidden]{display:none}.pd-host__overlay--error{flex-direction:column;color:#8f2630}.pd-host__spinner{width:16px;height:16px;border:2px solid #cfd7e6;border-top-color:#315ee7;border-radius:50%;animation:pd-host-spin .75s linear infinite}
+.ufv-pdf-preview{display:block;width:100%;min-width:0;height:100%;min-height:100%;border:0;background:#e8ebf0}
+.ufv-sheet-preview{display:grid;grid-template-rows:46px minmax(0,1fr) 38px;height:100%;min-height:360px;overflow:hidden;background:#fff;color:#263044;font-size:12px}.ufv-sheet-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-bottom:1px solid #dfe5ed;background:#fff}.ufv-sheet-toolbar strong{overflow:hidden;color:#172033;font-size:13px;text-overflow:ellipsis;white-space:nowrap}.ufv-sheet-toolbar span{flex:none;padding:3px 8px;border-radius:10px;background:#eef4ff;color:#315ee7;font-size:11px}.ufv-sheet-stage{min-height:0;overflow:auto;background:#f7f9fc}.ufv-sheet-panel{min-width:max-content;min-height:100%;background:#fff}.ufv-sheet-panel[hidden]{display:none}.ufv-sheet-preview table{min-width:100%;border-spacing:0;border-collapse:separate;table-layout:fixed;background:#fff}.ufv-sheet-preview th,.ufv-sheet-preview td{box-sizing:border-box;min-width:112px;height:28px;padding:4px 8px;overflow:hidden;border:0;border-right:1px solid #e2e7ee;border-bottom:1px solid #e2e7ee;background:#fff;font-weight:400;line-height:19px;text-align:left;text-overflow:ellipsis;white-space:nowrap}.ufv-sheet-preview thead th{position:sticky;top:0;z-index:2;height:26px;background:#f2f5f9;color:#657187;font-size:11px;font-weight:600;text-align:center}.ufv-sheet-preview tbody th{position:sticky;left:0;z-index:1;min-width:44px;width:44px;background:#f2f5f9;color:#657187;font-size:11px;text-align:center}.ufv-sheet-preview .ufv-sheet-corner{left:0;z-index:3;min-width:44px;width:44px}.ufv-sheet-preview tbody tr:first-child td{color:#172033;font-weight:600}.ufv-sheet-tabs{display:flex;align-items:stretch;gap:2px;overflow-x:auto;padding:0 10px;border-top:1px solid #dfe5ed;background:#f3f6fa}.ufv-sheet-tab{position:relative;flex:none;min-width:88px;padding:0 14px;border:0;background:transparent;color:#5d687d;cursor:pointer;font:inherit}.ufv-sheet-tab:hover{background:#e9eef6;color:#24314a}.ufv-sheet-tab[aria-selected="true"]{background:#fff;color:#22663d;font-weight:650}.ufv-sheet-tab[aria-selected="true"]::after{position:absolute;right:10px;bottom:0;left:10px;height:2px;background:#28905a;content:""}
+.ufv-odf-sheets{padding:24px}.ufv-odf-sheet{width:max-content;min-width:calc(100% - 48px);margin:0 0 24px;padding:20px;border:1px solid #dfe5ee;border-radius:7px;background:#fff}.ufv-odf-sheet h2{margin:0 0 14px;font-size:14px}.ufv-odf-sheet table{border-spacing:0;border-collapse:collapse}.ufv-odf-sheet td{min-width:96px;max-width:280px;padding:7px 10px;border:1px solid #dfe5ee;overflow-wrap:anywhere;font-size:12px;vertical-align:top}
 @keyframes pd-host-spin{to{transform:rotate(360deg)}}`
 
 function installStyles(documentRef: Document): void {
@@ -102,25 +105,25 @@ export function mountPreviewDock(
   let disposed = false
 
   const root = container.ownerDocument.createElement('section')
-  root.className = 'pd-host'
+  root.className = 'ufv pd-host'
   const toolbar = container.ownerDocument.createElement('header')
-  toolbar.className = 'pd-host__toolbar'
+  toolbar.className = 'ufv__toolbar pd-host__toolbar'
   const title = container.ownerDocument.createElement('div')
-  title.className = 'pd-host__title'
+  title.className = 'ufv__title pd-host__title'
   const name = container.ownerDocument.createElement('span')
-  name.className = 'pd-host__name'
+  name.className = 'ufv__name pd-host__name'
   const meta = container.ownerDocument.createElement('span')
-  meta.className = 'pd-host__meta'
+  meta.className = 'ufv__meta pd-host__meta'
   const statusLabel = container.ownerDocument.createElement('span')
-  statusLabel.className = 'pd-host__status'
+  statusLabel.className = 'ufv__status pd-host__status'
   title.append(name, meta)
   toolbar.append(title, statusLabel)
   const surface = container.ownerDocument.createElement('div')
-  surface.className = 'pd-host__surface'
+  surface.className = 'ufv__host pd-host__surface'
   const mount = container.ownerDocument.createElement('div')
-  mount.className = 'pd-host__mount'
+  mount.className = 'ufv__mount pd-host__mount'
   const overlay = container.ownerDocument.createElement('div')
-  overlay.className = 'pd-host__overlay'
+  overlay.className = 'ufv__empty pd-host__overlay'
   surface.append(mount, overlay)
   root.append(toolbar, surface)
   container.replaceChildren(root)
@@ -144,7 +147,11 @@ export function mountPreviewDock(
     statusLabel.textContent = copy.phases[status.phase]
     const busy = ['loading-source', 'detecting', 'loading-adapter', 'opening'].includes(status.phase)
     root.setAttribute('aria-busy', String(busy))
-    overlay.className = `pd-host__overlay${error ? ' pd-host__overlay--error' : ''}`
+    overlay.className = error
+      ? 'ufv__error pd-host__overlay pd-host__overlay--error'
+      : busy
+        ? 'ufv__loading pd-host__overlay'
+        : 'ufv__empty pd-host__overlay'
     overlay.replaceChildren()
     if (error) {
       const strong = container.ownerDocument.createElement('strong')
@@ -155,7 +162,7 @@ export function mountPreviewDock(
       overlay.hidden = false
     } else if (busy) {
       const spinner = container.ownerDocument.createElement('span')
-      spinner.className = 'pd-host__spinner'
+      spinner.className = 'ufv__spinner pd-host__spinner'
       spinner.setAttribute('aria-hidden', 'true')
       overlay.append(spinner, container.ownerDocument.createTextNode(copy.phases[status.phase]))
       overlay.hidden = false

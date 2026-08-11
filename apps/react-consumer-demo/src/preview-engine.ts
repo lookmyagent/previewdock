@@ -7,13 +7,9 @@ async function createLegacyConverter() {
     import('@previewdock/converter-zetaoffice'),
     import('zetajs/zeta.js?url'),
   ])
-  return createZetaOfficeConverter({
-    wasmPackage: 'free',
-    zetaJsUrl,
-  })
+  return createZetaOfficeConverter({ wasmPackage: 'free', zetaJsUrl })
 }
 
-// previewDockAssets() copies the Worker and WASM runtime files to this path.
 export const previewEngine = createAllFormatEngine({
   assetBaseUrl: `${import.meta.env.BASE_URL}previewdock/`,
   legacyOffice: {

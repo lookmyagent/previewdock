@@ -16,7 +16,7 @@ pnpm --filter @previewdock/vue-consumer-demo dev
 正式包发布后，在你的 Vue 项目执行：
 
 ```bash
-pnpm add vue @previewdock/vue @previewdock/preset-all
+pnpm add vue @previewdock/vue @previewdock/preset-all @previewdock/vite-plugin
 ```
 
 创建 `src/preview-engine.ts`：
@@ -24,7 +24,9 @@ pnpm add vue @previewdock/vue @previewdock/preset-all
 ```ts
 import { createAllFormatEngine } from '@previewdock/preset-all'
 
-export const previewEngine = createAllFormatEngine()
+export const previewEngine = createAllFormatEngine({
+  assetBaseUrl: '/previewdock/',
+})
 ```
 
 然后在任意 Vue 页面使用组件：
@@ -48,3 +50,17 @@ const file = ref<File | null>(null)
 ```
 
 `PreviewDock` 的父容器必须有明确高度。RAR / 7Z、CAD 和旧版 DOC / PPT 还需要配置对应 Worker、WASM 或转换器；只想安装部分格式时，可以改用独立 adapter manifest。
+
+本 demo 另外配置了 ZetaOffice WASM，以支持旧版 DOC/PPT；首次打开会下载较大的浏览器内 Office 运行时。
+
+Vite 项目还需要复制官方 Worker/WASM 资源：
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import { previewDockAssets } from '@previewdock/vite-plugin'
+
+export default defineConfig({
+  plugins: [previewDockAssets()],
+})
+```

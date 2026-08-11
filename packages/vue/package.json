@@ -24,7 +24,8 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@previewdock/core": "workspace:*"
+    "@previewdock/core": "workspace:*",
+    "@previewdock/web": "workspace:*"
   },
   "peerDependencies": {
     "vue": "^3.4.0"

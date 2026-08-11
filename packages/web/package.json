@@ -7,17 +7,18 @@
   "homepage": "https://github.com/lookmyagent/previewdock#readme",
   "bugs": { "url": "https://github.com/lookmyagent/previewdock/issues" },
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": ["**/*.css"],
   "files": ["dist"],
   "publishConfig": { "access": "public" },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./style.css": "./dist/style.css"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --splitting",
+    "build": "tsup src/index.ts --format esm --dts --clean --splitting && cp src/style.css dist/style.css",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

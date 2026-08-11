@@ -1,0 +1,15 @@
+{
+  "name": "@previewdock/web-consumer-demo",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vite", "build": "tsc --noEmit && vite build", "typecheck": "tsc --noEmit" },
+  "dependencies": {
+    "@previewdock/converter-zetaoffice": "workspace:*",
+    "@previewdock/preset-all": "workspace:*",
+    "@previewdock/vite-plugin": "workspace:*",
+    "@previewdock/web": "workspace:*",
+    "zetajs": "^1.2.0"
+  },
+  "devDependencies": { "typescript": "^5.8.3", "vite": "^6.3.5" }
+}

@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
 import { previewDockAssets } from '@previewdock/vite-plugin'
 
 export default defineConfig({
-  plugins: [vue(), previewDockAssets()],
+  plugins: [previewDockAssets()],
   server: {
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',

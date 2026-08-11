@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { PreviewDock } from '@previewdock/vue'
+import '@previewdock/vue/style.css'
 import { previewEngine } from './preview-engine'
 
 const fileInput = ref<HTMLInputElement>()
