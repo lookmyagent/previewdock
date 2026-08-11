@@ -75,4 +75,4 @@ const engine = createViewerEngine([documentsPack, imagesPack])
 - 不执行宏、嵌入脚本或其他活动内容；
 - 在目标浏览器和真实业务样本上完成兼容性验收。
 
-当前包已具备发布配置，但尚未完成 npm 首次发布；仓库内可通过 workspace 直接使用。
+所有官方包使用同一版本号发布到 npm。业务项目可使用 pnpm 或 npm 安装；发布内容、版本和源码提交通过 npm provenance 与 GitHub Release 对应。

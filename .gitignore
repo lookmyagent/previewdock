@@ -3,4 +3,6 @@ dist/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 apps/*-consumer-demo/public/previewdock/
+artifacts/
+*.tsbuildinfo
 .DS_Store

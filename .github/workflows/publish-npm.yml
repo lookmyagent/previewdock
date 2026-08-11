@@ -1,0 +1,52 @@
+name: Publish npm packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git tag or commit to publish (for example v0.2.0)
+        required: true
+        type: string
+      dist_tag:
+        description: npm dist-tag
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - next
+          - beta
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.ref }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: npm install --global npm@latest
+      - run: pnpm install --frozen-lockfile
+      - name: Verify release version
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          ref="${{ github.event_name == 'release' && github.event.release.tag_name || inputs.ref }}"
+          test "$ref" = "v$version" || test "$ref" = "${GITHUB_SHA}"
+      - run: pnpm release:npm -- --tag=${{ github.event_name == 'release' && 'latest' || inputs.dist_tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

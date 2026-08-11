@@ -2,10 +2,10 @@
 
 All notable changes to PreviewDock will be documented in this file.
 
-The project follows semantic versioning after the first stable release. During
-the Early Preview period, APIs, package names, and branding may still change.
+The project follows semantic versioning. Format fidelity levels remain explicit
+in the public compatibility matrix.
 
-## [Unreleased]
+## [0.2.0] - 2026-08-11
 
 ### Added
 
@@ -21,6 +21,9 @@ the Early Preview period, APIs, package names, and branding may still change.
 - Documentation navigation, local search, quick start, API reference, and
   Worker/WASM deployment guidance.
 - Repository, homepage, and issue metadata for publishable packages.
+- Vue 3, Vue 2, React and native Web tarball consumer verification.
+- Reproducible npm tarball validation and GitHub Actions publishing with
+  provenance support.
 
 ## [0.1.0] - Early Preview
 

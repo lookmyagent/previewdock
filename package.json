@@ -20,6 +20,9 @@
     "build:surfaces": "pnpm --filter @previewdock/docs build && pnpm --filter @previewdock/playground build",
     "build": "pnpm -r --filter './packages/**' build && pnpm --filter @previewdock/site build && pnpm run build:surfaces && node scripts/assemble-site.mjs",
     "deploy:production": "bash scripts/deploy-production.sh",
+    "release:npm:pack": "pnpm build && node scripts/npm-release.mjs",
+    "release:npm:dry-run": "pnpm test && pnpm typecheck && pnpm build && node scripts/npm-release.mjs --dry-run",
+    "release:npm": "pnpm test && pnpm typecheck && pnpm build && node scripts/npm-release.mjs --publish",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:watch": "vitest"

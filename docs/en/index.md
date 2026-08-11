@@ -75,4 +75,4 @@ See [Seven format categories](/en/categories) and [Format support and compatibil
 - Never execute macros, embedded scripts, or other active content.
 - Validate target browsers with representative business files.
 
-Packages are publish-ready but have not completed their first npm release. They can currently be consumed through the repository workspace.
+All official packages are released to npm with the same version. Applications can install them with pnpm or npm, while npm provenance and the GitHub Release link each package to its source commit.

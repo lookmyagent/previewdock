@@ -1,11 +1,12 @@
 # Getting started
 
-This page builds a Vue viewer with the official all-format preset. PreviewDock is currently an Early Preview, so package names and APIs may change before the first stable release.
+This page builds a Vue viewer with the official all-format preset from npm. The examples use pnpm; replace `pnpm add` with `npm install` if npm is your package manager.
 
 ## Install
 
 ```bash
 pnpm add vue @previewdock/vue @previewdock/preset-all
+# or: npm install vue @previewdock/vue @previewdock/preset-all
 ```
 
 ## Create an engine

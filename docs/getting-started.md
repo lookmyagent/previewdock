@@ -1,13 +1,12 @@
 # 快速开始
 
-本页使用官方全格式预设构建 Vue 预览器。PreviewDock 尚处于 Early Preview；npm 正式发布前，可从仓库 workspace 运行示例。
+本页使用 npm 上的官方全格式预设构建 Vue 预览器。以下示例使用 pnpm，也可以将 `pnpm add` 替换为 `npm install`。
 
 ## 安装
 
-正式包发布后：
-
 ```bash
 pnpm add vue @previewdock/vue @previewdock/preset-all
+# 或：npm install vue @previewdock/vue @previewdock/preset-all
 ```
 
 ## 创建 Engine

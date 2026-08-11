@@ -9,6 +9,7 @@ import previewWorkbenchEn from './assets/preview-workbench-en.webp'
 import previewCore from './assets/preview-core.webp'
 
 const locale = ref<SiteLocale>(getSiteLocale())
+const packageManager = ref<'pnpm' | 'npm'>('pnpm')
 const heroElement = ref<HTMLElement>()
 const docsUrl = computed(() => getLocalizedPath(projectLinks.docs, locale.value))
 const playgroundUrl = computed(() => getLocalizedPath(projectLinks.playground, locale.value))
@@ -32,6 +33,10 @@ function moveHero(event: PointerEvent) {
 function resetHero() {
   heroElement.value?.style.setProperty('--pointer-x', '0')
   heroElement.value?.style.setProperty('--pointer-y', '0')
+}
+
+function installCommand(command: string) {
+  return packageManager.value === 'npm' ? command.replace(/^pnpm add /, 'npm install ') : command
 }
 
 const copy = computed(() => locale.value === 'en' ? {
@@ -186,6 +191,11 @@ const formats = computed(() => formatCategories.map(category => ({
 
       <section class="section panel-section integration-section">
         <div class="section-heading"><h2>{{ copy.integrationTitle }}</h2><p>{{ copy.integrationDescription }}</p></div>
+        <div class="package-manager-switch" :aria-label="locale === 'en' ? 'Package manager' : '包管理器'">
+          <span>{{ locale === 'en' ? 'Install with' : '安装方式' }}</span>
+          <button type="button" :class="{ 'is-active': packageManager === 'pnpm' }" @click="packageManager = 'pnpm'">pnpm</button>
+          <button type="button" :class="{ 'is-active': packageManager === 'npm' }" @click="packageManager = 'npm'">npm</button>
+        </div>
         <div class="framework-matrix" aria-label="Framework compatibility">
           <strong>{{ copy.frameworkTitle }}</strong>
           <span v-for="framework in copy.frameworks" :key="framework">{{ framework }}</span>
@@ -193,7 +203,7 @@ const formats = computed(() => formatCategories.map(category => ({
         <div class="integration-modes">
           <article v-for="mode in copy.modes" :key="mode.key" class="integration-mode" :class="{ 'integration-mode--primary': mode.key === 'ALL' }">
             <header><span>{{ mode.key }}</span><div><h3>{{ mode.title }}</h3><p>{{ mode.text }}</p></div><small v-if="mode.recommended">{{ mode.recommended }}</small></header>
-            <code class="install-command">{{ mode.install }}</code>
+            <code class="install-command">{{ installCommand(mode.install) }}</code>
             <pre><span>{{ mode.importLine }}</span>
 {{ mode.engineLine }}</pre>
           </article>
