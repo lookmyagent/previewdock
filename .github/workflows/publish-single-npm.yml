@@ -1,0 +1,70 @@
+name: Publish single npm package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: PreviewDock entry package to publish
+        required: true
+        type: choice
+        options:
+          - vue
+          - vue2
+      ref:
+        description: Git ref containing the release version
+        required: true
+        default: main
+        type: string
+      dist_tag:
+        description: npm dist-tag
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - next
+          - beta
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    env:
+      PACKAGE_NAME: "@previewdock/${{ inputs.package }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: npm install --global npm@latest
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Pack and publish selected package
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DIST_TAG: ${{ inputs.dist_tag }}
+        run: |
+          version="$(node -p "require('./packages/${{ inputs.package }}/package.json').version")"
+          if npm view "${PACKAGE_NAME}@${version}" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "${PACKAGE_NAME}@${version} is already published."
+            exit 0
+          fi
+
+          output_dir="${RUNNER_TEMP}/previewdock-npm"
+          mkdir -p "${output_dir}"
+          pnpm --filter "${PACKAGE_NAME}" pack --pack-destination "${output_dir}"
+          tarball="$(find "${output_dir}" -maxdepth 1 -type f -name '*.tgz' -print -quit)"
+          test -n "${tarball}"
+          npm publish "${tarball}" --access public --tag "${DIST_TAG}" --registry=https://registry.npmjs.org
