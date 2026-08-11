@@ -64,7 +64,7 @@ jobs:
 
           output_dir="${RUNNER_TEMP}/previewdock-npm"
           mkdir -p "${output_dir}"
-          pnpm --filter "${PACKAGE_NAME}" pack --pack-destination "${output_dir}"
+          pnpm --dir "packages/${{ inputs.package }}" pack --pack-destination "${output_dir}"
           tarball="$(find "${output_dir}" -maxdepth 1 -type f -name '*.tgz' -print -quit)"
           test -n "${tarball}"
           npm publish "${tarball}" --access public --tag "${DIST_TAG}" --registry=https://registry.npmjs.org
