@@ -1,5 +1,7 @@
 # PreviewDock
 
+[简体中文](./README.md) | [English](./README.en.md)
+
 > 浏览器端全格式文件预览组件：一套运行时覆盖 Office、文本与数据、压缩包、图片、音视频、图表工程和 3D/CAD。
 
 [![CI](https://github.com/lookmyagent/previewdock/actions/workflows/ci.yml/badge.svg)](https://github.com/lookmyagent/previewdock/actions/workflows/ci.yml)
@@ -10,7 +12,11 @@
 
 PreviewDock 是面向文件中心、知识库、审批附件、网盘和专业资料系统的本地优先文件预览基础设施。文件默认留在浏览器内处理，解析器按格式动态加载；产品既可以一键启用全部格式，也可以只安装业务需要的分类。
 
-![PreviewDock 文件预览实验室](docs/playground-screenshot.png)
+### 产品界面
+
+| 门户首页 | 文件预览实验室 |
+| --- | --- |
+| ![PreviewDock 中文门户首页](docs/home-zh.webp) | ![PreviewDock 中文文件预览实验室](docs/playground-zh.webp) |
 
 ## 为什么选择 PreviewDock
 
