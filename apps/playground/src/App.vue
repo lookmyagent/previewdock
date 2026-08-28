@@ -364,6 +364,17 @@
           <button
             type="button"
             class="fullscreen-button"
+            :aria-label="watermarkEnabled ? t('hideWatermark') : t('showWatermark')"
+            :title="watermarkEnabled ? t('hideWatermark') : t('showWatermark')"
+            :aria-pressed="watermarkEnabled"
+            @click="watermarkEnabled = !watermarkEnabled"
+          >
+            <strong aria-hidden="true">W</strong>
+            <em>{{ t('watermark') }}</em>
+          </button>
+          <button
+            type="button"
+            class="fullscreen-button"
             :aria-label="isPreviewFullscreen ? t('exitFullscreen') : t('enterFullscreen')"
             :title="isPreviewFullscreen ? t('exitFullscreen') : t('enterFullscreen')"
             :aria-pressed="isPreviewFullscreen"
@@ -384,6 +395,11 @@
           :file-name="activeFile.name"
           :locale="locale"
           :show-toolbar="false"
+          :watermark="watermarkEnabled ? {
+            text: locale === 'zh-CN' ? 'PreviewDock · 内部预览' : 'PreviewDock · Preview',
+            opacity: 0.14,
+            rotate: -24,
+          } : false"
           @ready="handleReady"
           @status="handleStatus"
           @error="handleError"
@@ -513,7 +529,8 @@ const ui = {
     source: 'Sample files', samples: 'examples', searchFiles: 'Search names or formats', preview: 'Preview',
     files: 'files', localFiles: 'My files', formatCoverage: 'Also covers:',
     expandCategory: 'Expand category', collapseCategory: 'Collapse category',
-    enterFullscreen: 'Full screen', exitFullscreen: 'Exit full screen', noMatchingFiles: 'No matching examples',
+    enterFullscreen: 'Full screen', exitFullscreen: 'Exit full screen', watermark: 'Watermark',
+    showWatermark: 'Show watermark', hideWatermark: 'Hide watermark', noMatchingFiles: 'No matching examples',
     categoryDocuments: 'Office & Documents', categoryTextData: 'Text & Data',
     categoryArchives: 'Archives', categoryImages: 'Images', categoryMedia: 'Media',
     categoryDiagrams: 'Diagrams', category3dCad: '3D & CAD',
@@ -542,7 +559,8 @@ const ui = {
     source: '示例文件', samples: '个示例', searchFiles: '搜索文件名或格式', preview: '预览',
     files: '个文件', localFiles: '我的文件', formatCoverage: '同时覆盖：',
     expandCategory: '展开类别', collapseCategory: '收起类别',
-    enterFullscreen: '全屏预览', exitFullscreen: '退出全屏', noMatchingFiles: '没有匹配的示例',
+    enterFullscreen: '全屏预览', exitFullscreen: '退出全屏', watermark: '水印',
+    showWatermark: '显示水印', hideWatermark: '隐藏水印', noMatchingFiles: '没有匹配的示例',
     categoryDocuments: 'Office 与文档', categoryTextData: '文本与数据',
     categoryArchives: '压缩包', categoryImages: '图片', categoryMedia: '音视频',
     categoryDiagrams: '图表与流程', category3dCad: '3D 与 CAD',
@@ -846,6 +864,7 @@ const detectionMode = ref('auto')
 const inspectorState = ref<InspectorState>()
 const status = ref<ViewerStatus>({ phase: 'idle', message: 'Worker ready' })
 const isPreviewFullscreen = ref(false)
+const watermarkEnabled = ref(true)
 const openCategory = ref<SampleCategoryId | null>('text-data')
 
 function fileFromBase64(base64: string, name: string, type: string): File {

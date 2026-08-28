@@ -10,8 +10,15 @@
       <span class="ufv__status">{{ translatedStatus }}</span>
     </header>
 
-    <div class="ufv__host">
+    <div class="ufv__host" @scroll="syncWatermarkScroll">
       <div ref="mountRef" class="ufv__mount"></div>
+      <div
+        v-if="descriptor && watermarkBackground"
+        class="ufv__watermark"
+        aria-hidden="true"
+        ref="watermarkRef"
+        :style="{ backgroundImage: watermarkBackground }"
+      ></div>
       <div v-if="!source && !isBusy" class="ufv__empty">{{ resolvedEmptyTitle }}</div>
       <div v-if="isBusy" class="ufv__loading">
         <span class="ufv__spinner" aria-hidden="true"></span>
@@ -35,6 +42,10 @@ import type {
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { ViewerEngine } from '@previewdock/core'
 import {
+  createPreviewDockWatermarkBackground,
+  type PreviewDockWatermark,
+} from '@previewdock/web'
+import {
   viewerMessages,
   type ViewerLocale,
   type ViewerMessages,
@@ -50,6 +61,7 @@ const props = withDefaults(defineProps<{
   emptyTitle?: string
   locale?: ViewerLocale
   messages?: Partial<ViewerMessages>
+  watermark?: PreviewDockWatermark
 }>(), {
   source: null,
   fileName: '',
@@ -66,6 +78,7 @@ const emit = defineEmits<{
 }>()
 
 const mountRef = ref<HTMLElement>()
+const watermarkRef = ref<HTMLElement>()
 const descriptor = ref<FileDescriptor>()
 const errorMessage = ref('')
 const status = ref<ViewerStatus>({ phase: 'idle', message: 'Idle' })
@@ -90,6 +103,14 @@ const messages = computed<ViewerMessages>(() => {
 const resolvedEmptyTitle = computed(() => props.emptyTitle || messages.value.empty)
 const translatedStatus = computed(() => messages.value.phases[status.value.phase])
 const activeName = computed(() => props.fileName || descriptor.value?.name || '')
+const watermarkBackground = computed(() => createPreviewDockWatermarkBackground(props.watermark))
+
+function syncWatermarkScroll(event: Event): void {
+  const surface = event.currentTarget as HTMLElement
+  if (watermarkRef.value) {
+    watermarkRef.value.style.transform = `translate(${surface.scrollLeft}px, ${surface.scrollTop}px)`
+  }
+}
 
 const formattedSize = computed(() => {
   const bytes = descriptor.value?.size || 0

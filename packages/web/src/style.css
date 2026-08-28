@@ -56,6 +56,20 @@
   min-height: 100%;
 }
 
+.ufv__watermark {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background-repeat: repeat;
+  user-select: none;
+  will-change: transform;
+}
+
+.ufv__watermark[hidden] {
+  display: none;
+}
+
 .ufv__empty,
 .ufv__loading,
 .ufv__error {

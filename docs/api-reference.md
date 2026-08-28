@@ -37,7 +37,14 @@ const file = ref<File>()
 <template>
   <input type="file" @change="file = ($event.target as HTMLInputElement).files?.[0]">
   <div class="preview-area">
-    <PreviewDock v-if="file" :engine="engine" :source="file" :file-name="file.name" locale="zh-CN" />
+    <PreviewDock
+      v-if="file"
+      :engine="engine"
+      :source="file"
+      :file-name="file.name"
+      locale="zh-CN"
+      :watermark="{ text: '仅供内部使用', opacity: 0.14, rotate: -24 }"
+    />
   </div>
 </template>
 
@@ -55,5 +62,22 @@ const file = ref<File>()
 | `fileName` | 用于展示文件名和确认文件类型 |
 | `locale` | `zh-CN` 或 `en` |
 | `showToolbar` | 是否显示预览工具栏 |
+| `watermark` | 水印文字，或包含样式参数的水印配置；传入 `false` 关闭 |
+
+`watermark` 可以直接传字符串，也可以传入以下配置：
+
+```ts
+const watermark = {
+  text: '张三 · 仅供内部使用',
+  color: '#64748b',
+  opacity: 0.14,
+  fontSize: 14,
+  rotate: -24,
+  gapX: 220,
+  gapY: 140,
+}
+```
+
+水印覆盖所有预览格式，但不会阻止滚动、缩放或 3D 操作，也不会修改原文件。它是界面提示能力，不应替代鉴权、下载控制和审计。
 
 页面可以监听 `status`、`ready` 和 `error` 事件，展示加载状态、成功结果和友好错误提示。宿主系统继续负责文件选择、权限和下载策略。

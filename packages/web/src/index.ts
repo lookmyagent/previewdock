@@ -16,6 +16,18 @@ export interface PreviewDockMessages {
   phases: Record<ViewerPhase, string>
 }
 
+export interface PreviewDockWatermarkOptions {
+  text: string
+  color?: string
+  opacity?: number
+  fontSize?: number
+  rotate?: number
+  gapX?: number
+  gapY?: number
+}
+
+export type PreviewDockWatermark = string | PreviewDockWatermarkOptions | false | null
+
 export interface PreviewDockHostOptions {
   engine: ViewerEngine
   source?: FileSource | null
@@ -25,6 +37,7 @@ export interface PreviewDockHostOptions {
   emptyTitle?: string
   locale?: PreviewDockLocale
   messages?: Partial<PreviewDockMessages>
+  watermark?: PreviewDockWatermark
   onReady?: (result: OpenResult) => void
   onError?: (error: unknown) => void
   onStatus?: (status: ViewerStatus) => void
@@ -73,6 +86,7 @@ const hostStyle = `
 .pd-host__toolbar{display:flex;min-height:52px;align-items:center;justify-content:space-between;gap:20px;padding:0 18px;border-bottom:1px solid #e3e8f0;background:#fff}
 .pd-host__title{display:flex;min-width:0;align-items:baseline;gap:10px}.pd-host__name{overflow:hidden;color:#111827;font-size:14px;font-weight:650;text-overflow:ellipsis;white-space:nowrap}
 .pd-host__meta,.pd-host__status{color:#778196;font-size:12px}.pd-host__surface{position:relative;min-height:0;flex:1;overflow:auto;background:#f7f9fc}.pd-host__mount{height:100%;min-height:100%}
+.pd-host__watermark{position:absolute;inset:0;z-index:4;pointer-events:none;background-repeat:repeat;user-select:none;will-change:transform}.pd-host__watermark[hidden]{display:none}
 .pd-host__overlay{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;gap:10px;background:#f7f9fc;color:#778196;font-size:13px;text-align:center}
 .pd-host__overlay[hidden]{display:none}.pd-host__overlay--error{flex-direction:column;color:#8f2630}.pd-host__spinner{width:16px;height:16px;border:2px solid #cfd7e6;border-top-color:#315ee7;border-radius:50%;animation:pd-host-spin .75s linear infinite}
 .ufv-pdf-preview{display:block;width:100%;min-width:0;height:100%;min-height:100%;border:0;background:#e8ebf0}
@@ -92,6 +106,33 @@ function bytesLabel(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+}
+
+function clamp(value: number | undefined, fallback: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, Number.isFinite(value) ? value! : fallback))
+}
+
+function escapeXml(value: string): string {
+  return value.replace(/[&<>'"]/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&apos;', '"': '&quot;',
+  })[character]!)
+}
+
+export function createPreviewDockWatermarkBackground(
+  watermark: PreviewDockWatermark | undefined,
+): string | undefined {
+  if (!watermark) return undefined
+  const config = typeof watermark === 'string' ? { text: watermark } : watermark
+  const text = config.text.trim()
+  if (!text) return undefined
+  const width = clamp(config.gapX, 220, 96, 800)
+  const height = clamp(config.gapY, 140, 64, 600)
+  const fontSize = clamp(config.fontSize, 14, 8, 72)
+  const opacity = clamp(config.opacity, 0.14, 0.02, 1)
+  const rotate = clamp(config.rotate, -24, -90, 90)
+  const color = escapeXml(config.color || '#64748b')
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="${color}" fill-opacity="${opacity}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="600" transform="rotate(${rotate} ${width / 2} ${height / 2})">${escapeXml(text)}</text></svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
 }
 
 export function mountPreviewDock(
@@ -122,11 +163,19 @@ export function mountPreviewDock(
   surface.className = 'ufv__host pd-host__surface'
   const mount = container.ownerDocument.createElement('div')
   mount.className = 'ufv__mount pd-host__mount'
+  const watermark = container.ownerDocument.createElement('div')
+  watermark.className = 'ufv__watermark pd-host__watermark'
+  watermark.setAttribute('aria-hidden', 'true')
   const overlay = container.ownerDocument.createElement('div')
   overlay.className = 'ufv__empty pd-host__overlay'
-  surface.append(mount, overlay)
+  surface.append(mount, watermark, overlay)
   root.append(toolbar, surface)
   container.replaceChildren(root)
+
+  const syncWatermarkScroll = (): void => {
+    watermark.style.transform = `translate(${surface.scrollLeft}px, ${surface.scrollTop}px)`
+  }
+  surface.addEventListener('scroll', syncWatermarkScroll, { passive: true })
 
   function resolvedMessages(): PreviewDockMessages {
     const base = messages[options.locale || 'en']
@@ -147,6 +196,9 @@ export function mountPreviewDock(
     statusLabel.textContent = copy.phases[status.phase]
     const busy = ['loading-source', 'detecting', 'loading-adapter', 'opening'].includes(status.phase)
     root.setAttribute('aria-busy', String(busy))
+    const watermarkBackground = createPreviewDockWatermarkBackground(options.watermark)
+    watermark.style.backgroundImage = watermarkBackground || ''
+    watermark.hidden = !watermarkBackground || !descriptor
     overlay.className = error
       ? 'ufv__error pd-host__overlay pd-host__overlay--error'
       : busy
@@ -231,6 +283,7 @@ export function mountPreviewDock(
       disposed = true
       requestId += 1
       stopStatus()
+      surface.removeEventListener('scroll', syncWatermarkScroll)
       await options.engine.close()
       root.remove()
     },
@@ -248,9 +301,10 @@ export class PreviewDockElement extends HTMLElementBase {
   private controller?: PreviewDockController
   private _engine?: ViewerEngine
   private _source?: FileSource | null
+  private _watermark?: PreviewDockWatermark
 
   static get observedAttributes(): string[] {
-    return ['src', 'file-name', 'mime-type', 'locale', 'show-toolbar']
+    return ['src', 'file-name', 'mime-type', 'locale', 'show-toolbar', 'watermark']
   }
 
   set engine(value: ViewerEngine | undefined) {
@@ -264,6 +318,12 @@ export class PreviewDockElement extends HTMLElementBase {
     this.controller?.update({ source: value })
   }
   get source(): FileSource | null | undefined { return this._source }
+
+  set watermark(value: PreviewDockWatermark | undefined) {
+    this._watermark = value
+    this.controller?.update({ watermark: value })
+  }
+  get watermark(): PreviewDockWatermark | undefined { return this._watermark }
 
   connectedCallback(): void { this.remount() }
   disconnectedCallback(): void { void this.controller?.dispose(); this.controller = undefined }
@@ -286,6 +346,7 @@ export class PreviewDockElement extends HTMLElementBase {
       mimeType: this.getAttribute('mime-type') || undefined,
       locale: this.getAttribute('locale') === 'zh-CN' ? 'zh-CN' : 'en',
       showToolbar: this.getAttribute('show-toolbar') !== 'false',
+      watermark: this._watermark ?? this.getAttribute('watermark'),
     })
   }
 }

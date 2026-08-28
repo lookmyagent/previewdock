@@ -4,6 +4,7 @@ import {
   type PreviewDockController,
   type PreviewDockLocale,
   type PreviewDockMessages,
+  type PreviewDockWatermark,
 } from '@previewdock/web'
 
 type VueHost = {
@@ -17,6 +18,7 @@ type VueHost = {
   emptyTitle?: string
   locale?: PreviewDockLocale
   messages?: Partial<PreviewDockMessages>
+  watermark?: PreviewDockWatermark
   controller?: PreviewDockController
   sync(): void
 }
@@ -32,6 +34,7 @@ export const PreviewDock = {
     emptyTitle: { type: String, default: '' },
     locale: { type: String, default: 'en' },
     messages: { type: Object, default: undefined },
+    watermark: { type: [String, Object, Boolean], default: undefined },
   },
   render(createElement: (tag: string, data?: unknown) => unknown) {
     return createElement('div', { style: { height: '100%' } })
@@ -46,6 +49,7 @@ export const PreviewDock = {
       emptyTitle: this.emptyTitle,
       locale: this.locale,
       messages: this.messages,
+      watermark: this.watermark,
       onReady: (result: OpenResult) => this.$emit('ready', result),
       onError: (error: unknown) => this.$emit('error', error),
       onStatus: (status: ViewerStatus) => this.$emit('status', status),
@@ -63,6 +67,7 @@ export const PreviewDock = {
     emptyTitle(this: VueHost) { this.sync() },
     locale(this: VueHost) { this.sync() },
     messages: { deep: true, handler(this: VueHost) { this.sync() } },
+    watermark: { deep: true, handler(this: VueHost) { this.sync() } },
   },
   methods: {
     sync(this: VueHost) {
@@ -74,6 +79,7 @@ export const PreviewDock = {
         emptyTitle: this.emptyTitle,
         locale: this.locale,
         messages: this.messages,
+        watermark: this.watermark,
       })
     },
     open(this: VueHost, source: FileSource, options?: { fileName?: string; mimeType?: string }) {
@@ -89,4 +95,4 @@ export const PreviewDockPlugin = {
 }
 
 export default PreviewDockPlugin
-export type { PreviewDockLocale, PreviewDockMessages } from '@previewdock/web'
+export type { PreviewDockLocale, PreviewDockMessages, PreviewDockWatermark, PreviewDockWatermarkOptions } from '@previewdock/web'
